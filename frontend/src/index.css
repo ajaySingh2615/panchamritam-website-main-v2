@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS variables and styles below */
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  
+  /* Text Colors */
+  --text-dark: #333333;
+  --text-medium: #666666;
+  --text-light: #777777;
+  --text-white: #ffffff;
+  
+  /* Brand Colors */
+  --primary: #4caf50;
+  --primary-dark: #3d8b40;
+  --primary-light: #e8f5e9;
+  --secondary: #8d6e63; /* Earth brown */
+  --accent: #81c784; /* Light green */
+  
+  /* UI Colors */
+  --background: #f8f6f3; /* Light beige background */
+  --card-bg: #ffffff;
+  --error: #dc3545;
+  --error-light: #ffcdd2;
+  --success: #28a745;
+  --success-light: #c8e6c9;
+  --warning: #ffc107;
+  --info: #17a2b8;
+  
+  /* Layout */
+  --border-radius: 8px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --max-width: 1200px;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  color: var(--text-dark);
+  background-color: var(--background);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--text-dark);
+  background-color: var(--background);
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  font-weight: 500;
+  text-decoration: inherit;
+  color: var(--primary);
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
+h1 {
+  font-size: 2.2em;
+  line-height: 1.1;
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 1.8em;
+  line-height: 1.2;
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.5em;
+  line-height: 1.3;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Utility Classes */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+  }
+  
+  h1 {
+    font-size: 1.8em;
+  }
+  
+  h2 {
+    font-size: 1.5em;
+  }
+  
+  h3 {
+    font-size: 1.3em;
+  }
+}
+
+/* Remove all the button and media query styles below */

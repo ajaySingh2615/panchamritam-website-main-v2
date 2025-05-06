@@ -1,0 +1,68 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependencies
+node_modules/
+/build
+/dist
+
+# Optional build results directory
+# Usually used if you need to commit the results of the build (e.g. for GitHub pages)
+# .next/
+# /out
+
+# Caches
+.npm
+.yarn
+.pnpm
+.parcel-cache
+.cache
+
+# Optional next.js cache
+# .next
+
+#dotenv
+.env
+.env.*
+!.env.example
+
+# Editor & Tooling
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+#ignore pdf files
+*.pdf
+
+#ignore images files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+
+#ignore zip files
+*.zip
+*.rar
+
+#ignore os files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+#ignore coverage
+coverage
+
+#ignore docker
+docker-compose.yml
+
+# Add this line to your .gitignore file
+firebase-service-account.json
