@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const passport = require('passport');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { testConnection } = require('./config/db');
+const { checkReviewsTable } = require('./utils/dbCheck');
 
 // Load environment variables
 dotenv.config();
@@ -86,6 +87,14 @@ app.listen(PORT, async () => {
   const dbConnected = await testConnection();
   if (!dbConnected) {
     console.error('WARNING: Could not connect to database. API calls that require database access will fail.');
+  } else {
+    // Check database tables and repair if needed
+    try {
+      console.log('Checking database tables...');
+      await checkReviewsTable();
+    } catch (error) {
+      console.error('Error checking database tables:', error);
+    }
   }
 });
 

@@ -323,6 +323,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     successMessage,
+    isAuthenticated: !!user,
     setError,
     setSuccessMessage,
     login,

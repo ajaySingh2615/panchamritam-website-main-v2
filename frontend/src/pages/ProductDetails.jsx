@@ -1,14 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import Breadcrumb from '../components/common/Breadcrumb';
+import ReviewForm from '../components/reviews/ReviewForm';
+import ReviewsList from '../components/reviews/ReviewsList';
+import ReviewSummary from '../components/reviews/ReviewSummary';
 import { API_ENDPOINTS } from '../config/api';
+import axios from 'axios';
 import './ProductDetails.css';
 
 const ProductDetails = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { addToCart, removeFromCart, cart, updateCartItemQuantity } = useCart();
+  const { isAuthenticated, user } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,6 +27,36 @@ const ProductDetails = () => {
   const imageRef = useRef(null);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  
+  // Reviews state
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState(null);
+  const [reviewStats, setReviewStats] = useState({
+    total_reviews: 0,
+    average_rating: 0,
+    five_star: 0,
+    four_star: 0,
+    three_star: 0,
+    two_star: 0,
+    one_star: 0
+  });
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [userReview, setUserReview] = useState(null);
+  
+  // Fetch auth token from localStorage to check if user should be logged in
+  const [localToken, setLocalToken] = useState(localStorage.getItem('token'));
+  
+  // Check for token in local storage
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setLocalToken(token);
+    
+    // If we have a token but no user or isAuthenticated is false, there might be an issue
+    if (token && (!isAuthenticated || !user)) {
+      console.warn('Token exists but user is not authenticated. This might indicate an issue with auth state.');
+    }
+  }, [isAuthenticated, user]);
   
   // Utility functions for displaying product info
   const formatPrice = (price) => {
@@ -326,9 +362,9 @@ const ProductDetails = () => {
           quantity: parseInt(productData.quantity || 0),
           in_stock: productData.quantity > 0,
           stock_status: parseInt(productData.quantity || 0) > 5 
-            ? 'In Stock' 
-            : parseInt(productData.quantity || 0) > 0 
-              ? 'Low Stock' 
+              ? 'In Stock' 
+              : parseInt(productData.quantity || 0) > 0 
+                ? 'Low Stock' 
               : 'Out of Stock',
           sku: productData.sku || `PM-${productData.product_id}`,
           price: parseFloat(productData.price || 0),
@@ -336,6 +372,9 @@ const ProductDetails = () => {
           rating: parseFloat(productData.rating || 0),
           review_count: parseInt(productData.review_count || 0)
         });
+        
+        // Fetch reviews for this product
+        fetchReviews();
       } catch (err) {
         console.error('Error fetching product details:', err);
         setError(err.message || 'Failed to load product details. Please try again later.');
@@ -360,6 +399,178 @@ const ProductDetails = () => {
       setSelectedImage(0);
     }
   };
+
+  // Reviews fetching
+  const fetchReviews = async () => {
+    if (!productId) return;
+    
+    try {
+      setReviewsLoading(true);
+      
+      // Get token for authenticated requests
+      const token = localStorage.getItem('token');
+      const config = {
+        timeout: 5000, // 5 second timeout
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      };
+      
+      // Add a timeout to the axios request
+      const response = await axios.get(`${API_ENDPOINTS.REVIEWS}/product/${productId}`, config);
+      
+      if (response.data.status === 'success') {
+        setReviews(response.data.data.reviews);
+        setReviewStats(response.data.data.stats);
+        
+        // Check if the user has already reviewed this product
+        // Use user ID directly rather than checking isAuthenticated first
+        if (user && user.user_id) {
+          console.log('Checking if user has already reviewed this product', {
+            userId: user.user_id,
+            reviewCount: response.data.data.reviews.length
+          });
+          
+          const userReviewFound = response.data.data.reviews.find(
+            review => review.user_id === user.user_id
+          );
+          
+          if (userReviewFound) {
+            console.log('Found user review:', userReviewFound);
+            setUserReview(userReviewFound);
+          } else {
+            console.log('No user review found');
+            setUserReview(null);
+          }
+        } else {
+          console.log('User not authenticated or user data not loaded yet');
+          setUserReview(null);
+        }
+      } else {
+        console.warn('Failed to load reviews: Unexpected response format');
+        // Set empty values instead of showing an error
+        setEmptyReviewData();
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      
+      // Log detailed error information to help with debugging
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.log('Error response data:', error.response.data);
+        console.log('Error response status:', error.response.status);
+        console.log('Error response headers:', error.response.headers);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.log('No response received:', error.request);
+      }
+      
+      // Handle auth errors specifically
+      if (error.response?.status === 401) {
+        console.warn('Authentication error when fetching reviews. Token may be invalid.');
+      }
+      
+      // Set default empty values to ensure the UI still renders properly
+      setEmptyReviewData();
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  // Helper function to set empty review data
+  const setEmptyReviewData = () => {
+    setReviews([]);
+    setReviewStats({
+      total_reviews: 0,
+      average_rating: 0,
+      five_star: 0,
+      four_star: 0,
+      three_star: 0,
+      two_star: 0,
+      one_star: 0
+    });
+    
+    // Set a more informative message that doesn't alarm users
+    setReviewsError('Reviews are currently being updated. Please check back soon.');
+  };
+
+  // Fetch reviews when tab changes to reviews or authentication state changes
+  useEffect(() => {
+    if (activeTab === 'reviews' && productId) {
+      fetchReviews();
+    }
+  }, [activeTab, productId, isAuthenticated, user]); // Include authentication dependencies
+
+  // Handle new review submission
+  const handleReviewSubmit = (newReview) => {
+    setReviews(prev => [newReview, ...prev]);
+    setShowReviewForm(false);
+    fetchReviews(); // Refresh all reviews and stats
+    
+    // Update product with new review count and rating
+    if (product) {
+      setProduct(prev => ({
+        ...prev,
+        review_count: prev.review_count + (userReview ? 0 : 1),
+        // The backend will calculate the actual average
+      }));
+    }
+  };
+
+  // Toggle review form visibility
+  const toggleReviewForm = () => {
+    console.log('Auth state when toggling review form:', { 
+      isAuthenticated, 
+      user,
+      localToken
+    });
+    
+    // If user exists but isAuthenticated is not set yet, consider user as authenticated
+    if (user && user.user_id) {
+      console.log('User exists, toggling review form regardless of isAuthenticated status');
+      setShowReviewForm(prev => !prev);
+      return;
+    }
+    
+    if (!isAuthenticated || !user) {
+      // If we have a token but we're not authenticated, this could be an auth synchronization issue
+      if (localToken) {
+        console.warn('Auth state is out of sync. Token exists but user is not authenticated.');
+        // Try refreshing the page to resync auth state
+        if (confirm("Your login session needs to be refreshed. Click OK to refresh the page.")) {
+          window.location.reload();
+          return;
+        }
+      }
+      
+      // No token or user declined to refresh, redirect to login
+      console.log('User not authenticated, redirecting to login');
+      navigate('/login', { state: { from: `/product/${productId}` } });
+      return;
+    }
+    
+    // User is authenticated, toggle the review form
+    console.log('User is authenticated, showing review form');
+    setShowReviewForm(prev => !prev);
+  };
+
+  // Check authentication state on component load
+  useEffect(() => {
+    console.log('Initial authentication state:', { 
+      isAuthenticated, 
+      userId: user?.user_id,
+      userName: user?.name,
+      hasUser: !!user,
+      token: localStorage.getItem('token')
+    });
+    
+    // Log isAuthenticated more directly to see if it's a boolean or undefined
+    console.log('isAuthenticated type:', typeof isAuthenticated);
+    console.log('isAuthenticated value:', isAuthenticated);
+    
+    if (localStorage.getItem('token') && (!isAuthenticated || !user)) {
+      console.warn('Token exists but user is not authenticated. This might indicate an issue with auth state.');
+    }
+  }, [isAuthenticated, user]);
 
   if (loading) {
     return (
@@ -561,14 +772,14 @@ const ProductDetails = () => {
             
             {/* Ratings */}
             <div className="flex items-center mb-4">
-              {renderStarRating(product.rating)}
+                {renderStarRating(product.rating)}
               <span className="ml-2 text-gray-500 text-sm">
                 {product.review_count 
                   ? `(${product.review_count} ${product.review_count === 1 ? 'review' : 'reviews'})`
                   : '(No reviews yet)'
                 }
               </span>
-            </div>
+              </div>
             
             {/* Price */}
             <div className="mb-6">
@@ -582,7 +793,7 @@ const ProductDetails = () => {
                   </span>
                   <span className="ml-3 bg-red-100 text-red-700 text-sm font-semibold px-2 py-0.5 rounded">
                     Save {calculateDiscount()}%
-                  </span>
+                </span>
                 </div>
               ) : (
                 <span className="text-3xl font-bold text-gray-800">
@@ -636,13 +847,13 @@ const ProductDetails = () => {
                     >
                       -
                     </button>
-                    <input
-                      type="number"
-                      id="quantity"
-                      min="1"
-                      max={product.quantity}
-                      value={quantity}
-                      onChange={handleQuantityChange}
+                  <input
+                    type="number"
+                    id="quantity"
+                    min="1"
+                    max={product.quantity}
+                    value={quantity}
+                    onChange={handleQuantityChange}
                       className="w-12 text-center border-x border-gray-300 focus:outline-none"
                     />
                     <button
@@ -660,7 +871,7 @@ const ProductDetails = () => {
                 
                 {/* Action Buttons */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button 
+                    <button 
                     type="button"
                     onClick={isInCart ? handleRemoveFromCart : handleAddToCart}
                     className={`flex items-center justify-center px-6 py-3 text-white font-medium rounded-md transition duration-300 ${
@@ -680,11 +891,11 @@ const ProductDetails = () => {
                       <>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        Add to Cart
+                      </svg>
+                      Add to Cart
                       </>
                     )}
-                  </button>
+                    </button>
                   <button 
                     type="button"
                     onClick={handleBuyNow}
@@ -713,7 +924,7 @@ const ProductDetails = () => {
                     <span className="w-2/3 text-gray-800">{product.sku}</span>
                   </li>
                 )}
-                {product.brand && (
+              {product.brand && (
                   <li className="flex">
                     <span className="w-1/3 text-gray-500">Brand:</span>
                     <span className="w-2/3 text-gray-800">{product.brand}</span>
@@ -730,9 +941,9 @@ const ProductDetails = () => {
                     <span className="w-1/3 text-gray-500">Shipping:</span>
                     <span className="w-2/3 text-gray-800">
                       {product.free_shipping ? 'Free shipping' : 'Standard shipping'} - {product.shipping_time}
-                    </span>
+                  </span>
                   </li>
-                )}
+              )}
               </ul>
             </div>
             
@@ -741,7 +952,7 @@ const ProductDetails = () => {
               <div className="mb-6 bg-[#f0f5e5] p-4 rounded-lg flex items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#9bc948] mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                  </svg>
                 <div>
                   <h3 className="font-semibold text-[#6a8c32] mb-1">Eco-Friendly Product</h3>
                   <p className="text-gray-700 text-sm">
@@ -760,23 +971,23 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
-
+        
         {/* Product Tabs Section */}
         <div className="mt-12 mb-16">
           {/* Tab Navigation */}
           <div className="border-b border-gray-200 mb-8">
             <nav className="flex -mb-px space-x-8 overflow-x-auto pb-1">
-              <button
+            <button 
                 className={`py-4 font-medium text-center border-b-2 focus:outline-none whitespace-nowrap ${
                   activeTab === 'description'
                     ? 'border-[#9bc948] text-[#9bc948]'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
-                onClick={() => setActiveTab('description')}
-              >
-                Description
-              </button>
-              <button
+              onClick={() => setActiveTab('description')}
+            >
+              Description
+            </button>
+            <button 
                 className={`py-4 font-medium text-center border-b-2 focus:outline-none whitespace-nowrap ${
                   activeTab === 'additional'
                     ? 'border-[#9bc948] text-[#9bc948]'
@@ -795,17 +1006,17 @@ const ProductDetails = () => {
                 onClick={() => setActiveTab('reviews')}
               >
                 Reviews {product.review_count > 0 && `(${product.review_count})`}
-              </button>
-              <button
+            </button>
+            <button 
                 className={`py-4 font-medium text-center border-b-2 focus:outline-none whitespace-nowrap ${
                   activeTab === 'shipping'
                     ? 'border-[#9bc948] text-[#9bc948]'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
-                onClick={() => setActiveTab('shipping')}
-              >
-                Shipping & Returns
-              </button>
+              onClick={() => setActiveTab('shipping')}
+            >
+              Shipping & Returns
+            </button>
             </nav>
           </div>
           
@@ -817,7 +1028,7 @@ const ProductDetails = () => {
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Product Description</h2>
                 <div className="leading-relaxed">
                   {product.description ? (
-                    <p>{product.description}</p>
+                <p>{product.description}</p>
                   ) : (
                     <p>No detailed description available for this product.</p>
                   )}
@@ -864,8 +1075,8 @@ const ProductDetails = () => {
                       )}
                     </tbody>
                   </table>
-                </div>
               </div>
+            </div>
             )}
             
             {/* Reviews Tab */}
@@ -873,89 +1084,59 @@ const ProductDetails = () => {
               <div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Customer Reviews</h2>
                 
-                {/* Rating Summary */}
-                <div className="flex flex-col md:flex-row gap-8 mb-8">
-                  <div className="w-full md:w-1/3">
-                    <div className="flex flex-col items-center justify-center bg-gray-50 rounded-lg p-6">
-                      <div className="text-5xl font-bold text-gray-800 mb-2">
-                        {product.rating ? product.rating.toFixed(1) : '0.0'}
-                      </div>
-                      <div className="flex mb-2">
-                        {renderStarRating(product.rating || 0)}
-                      </div>
-                      <div className="text-gray-500 text-sm">
-                        Based on {product.review_count || 0} {product.review_count === 1 ? 'review' : 'reviews'}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="w-full md:w-2/3">
-                    {/* Rating Bars */}
-                    <div className="space-y-3">
-                      {[5, 4, 3, 2, 1].map(star => (
-                        <div key={star} className="flex items-center">
-                          <div className="w-12 text-gray-600 text-sm flex-shrink-0">{star} star</div>
-                          <div className="flex-grow bg-gray-200 h-2.5 rounded-full mx-3 overflow-hidden">
-                            <div 
-                              className="bg-yellow-400 h-full rounded-full" 
-                              style={{ width: `${product.review_count ? (5 / product.review_count) * 100 : 0}%` }}
-                            ></div>
-                          </div>
-                          <div className="w-8 text-right text-gray-600 text-sm flex-shrink-0">
-                            {/* Placeholder for actual count */}
-                            {Math.floor(product.review_count ? product.review_count / 5 : 0)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                {/* Review Form */}
+                {showReviewForm ? (
+                  <ReviewForm 
+                    productId={productId}
+                    onReviewSubmit={handleReviewSubmit}
+                    existingReview={userReview}
+                    onCancel={() => setShowReviewForm(false)}
+                  />
+                ) : (
+                  <div className="mb-8 flex justify-between items-center">
+                    <button
+                      onClick={toggleReviewForm}
+                      className="inline-flex items-center px-4 py-2 border border-[#9bc948] text-[#9bc948] bg-white rounded-md hover:bg-[#f0f5e5] transition duration-300"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      {userReview ? 'Edit Your Review' : 'Write a Review'}
+                    </button>
                     
-                    {/* Write a Review */}
-                    <div className="mt-6">
-                      <Link
-                        to={`/product/${product.product_id}/review`}
-                        className="inline-flex items-center px-4 py-2 border border-[#9bc948] text-[#9bc948] bg-white rounded-md hover:bg-[#f0f5e5] transition duration-300"
+                    {reviewsError && (
+                      <button
+                        onClick={() => {
+                          setReviewsError(null);
+                          fetchReviews();
+                        }}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50 transition duration-300"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        Write a Review
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Review List */}
-                {product.review_count > 0 ? (
-                  <div className="space-y-6">
-                    {/* Placeholder review - would be replaced with actual data */}
-                    <div className="border rounded-lg p-4">
-                      <div className="flex justify-between mb-2">
-                        <div className="flex items-center">
-                          <div className="mr-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-                              JD
-                            </div>
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-800">John Doe</div>
-                            <div className="text-gray-500 text-sm">June 1, 2025</div>
-                          </div>
-                        </div>
-                        <div>
-                          {renderStarRating(5)}
-                        </div>
-                      </div>
-                      <h3 className="font-medium text-gray-800 mb-2">Great product!</h3>
-                      <p className="text-gray-600">
-                        This is a sample review. The actual review content would be displayed here.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No reviews yet. Be the first to review this product!
+                        Retry Loading Reviews
+                      </button>
+                    )}
                   </div>
                 )}
+                
+                {/* Rating Summary */}
+                <ReviewSummary
+                  stats={reviewStats}
+                  totalReviews={reviewStats.total_reviews || 0}
+                />
+                
+                {/* Review List */}
+                <h3 className="text-xl font-semibold mt-8 mb-4">
+                  {reviewStats.total_reviews || 0} {(reviewStats.total_reviews === 1) ? 'Review' : 'Reviews'}
+                </h3>
+                
+                <ReviewsList
+                  reviews={reviews}
+                  loading={reviewsLoading}
+                  error={reviewsError}
+                />
               </div>
             )}
             
@@ -967,8 +1148,8 @@ const ProductDetails = () => {
                 <div className="space-y-6 text-gray-600">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">Shipping Information</h3>
-                    <p>
-                      {product.free_shipping 
+                <p>
+                  {product.free_shipping 
                         ? 'This product qualifies for free shipping.' 
                         : 'Standard shipping rates apply to this product.'
                       }
@@ -984,17 +1165,17 @@ const ProductDetails = () => {
                       We accept returns within 30 days of delivery for most items. Please ensure that the product is unused, in its original packaging, and in the same condition that you received it.
                     </p>
                   </div>
-                  
-                  {product.warranty_period && (
+                
+                {product.warranty_period && (
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-2">Warranty</h3>
                       <p>
                         This product includes a {product.warranty_period}-day warranty against manufacturer defects.
                       </p>
                     </div>
-                  )}
-                </div>
+                )}
               </div>
+            </div>
             )}
           </div>
         </div>

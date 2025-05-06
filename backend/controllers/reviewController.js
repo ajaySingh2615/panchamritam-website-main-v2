@@ -18,7 +18,7 @@ exports.getProductReviews = async (req, res, next) => {
     }
     
     // Get all reviews without status filtering
-    const reviews = await Review.findAllByProductId(productId, limit, offset);
+    const reviews = await Review.findByProductId(productId, limit, offset);
     
     // Get review statistics
     const stats = await Review.getProductStats(productId);
@@ -65,8 +65,18 @@ exports.createReview = async (req, res, next) => {
     const userId = req.user.user_id; // From auth middleware
     const { rating, title, content } = req.body;
     
+    console.log('Review submission request:', {
+      productId,
+      userId,
+      rating: parseFloat(rating),
+      title,
+      content,
+      userObj: req.user,
+      body: req.body
+    });
+    
     // Validate required fields
-    if (!rating || rating < 1 || rating > 5) {
+    if (!rating || isNaN(parseFloat(rating)) || parseFloat(rating) < 1 || parseFloat(rating) > 5) {
       return next(new AppError('Rating must be between 1 and 5', 400));
     }
     
@@ -83,21 +93,37 @@ exports.createReview = async (req, res, next) => {
     }
     
     // Create review
-    const newReview = await Review.create({
-      productId,
-      userId,
-      rating,
-      title: title || 'Review',
-      content: content || ''
-    });
-    
-    res.status(201).json({
-      status: 'success',
-      data: {
-        review: newReview
-      }
-    });
+    try {
+      const newReview = await Review.create({
+        productId: parseInt(productId, 10),
+        userId: parseInt(userId, 10),
+        rating: parseFloat(rating),
+        title: title || 'Review',
+        content: content || ''
+      });
+      
+      // Get user information for the response
+      const user = req.user;
+      
+      // Enhance the review object with user information
+      const enhancedReview = {
+        ...newReview,
+        user_name: user.name,
+        avatar_url: user.profile_picture
+      };
+      
+      res.status(201).json({
+        status: 'success',
+        data: {
+          review: enhancedReview
+        }
+      });
+    } catch (createError) {
+      console.error('Error in review creation:', createError);
+      return next(new AppError(`Failed to create review: ${createError.message}`, 500));
+    }
   } catch (error) {
+    console.error('Error creating review:', error);
     next(error);
   }
 };

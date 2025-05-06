@@ -17,8 +17,8 @@ class Review {
         // First try query without status filtering (for after migration)
         const [rows] = await pool.execute(
           `SELECT r.*, u.name as user_name, u.profile_picture as user_profile_picture
-           FROM Reviews r
-           LEFT JOIN Users u ON r.user_id = u.user_id
+           FROM reviews r
+           LEFT JOIN users u ON r.user_id = u.user_id
            WHERE r.product_id = ?
            ORDER BY r.created_at DESC
            LIMIT ${limit} OFFSET ${offset}`,
@@ -33,8 +33,8 @@ class Review {
         try {
           const [fallbackRows] = await pool.execute(
             `SELECT r.*, u.name as user_name, u.profile_picture as user_profile_picture
-             FROM Reviews r
-             LEFT JOIN Users u ON r.user_id = u.user_id
+             FROM reviews r
+             LEFT JOIN users u ON r.user_id = u.user_id
              WHERE r.product_id = ? AND r.status = 'approved'
              ORDER BY r.created_at DESC
              LIMIT ${limit} OFFSET ${offset}`,
@@ -47,7 +47,7 @@ class Review {
           console.error('Fallback query failed, trying minimal query:', fallbackError);
           
           const [minimalRows] = await pool.execute(
-            `SELECT r.* FROM Reviews r WHERE r.product_id = ? LIMIT ${limit} OFFSET ${offset}`,
+            `SELECT r.* FROM reviews r WHERE r.product_id = ? LIMIT ${limit} OFFSET ${offset}`,
             [prodId]
           );
           
@@ -66,8 +66,8 @@ class Review {
       // Get reviews from a specific user with product information
       const [rows] = await pool.execute(
         `SELECT r.*, p.name as product_name, p.image_url as product_image
-         FROM Reviews r
-         LEFT JOIN Products p ON r.product_id = p.product_id
+         FROM reviews r
+         LEFT JOIN products p ON r.product_id = p.product_id
          WHERE r.user_id = ?
          ORDER BY r.created_at DESC
          LIMIT ? OFFSET ?`,
@@ -85,9 +85,9 @@ class Review {
     try {
       const [rows] = await pool.execute(
         `SELECT r.*, u.name as user_name, p.name as product_name
-         FROM Reviews r
-         LEFT JOIN Users u ON r.user_id = u.user_id
-         LEFT JOIN Products p ON r.product_id = p.product_id
+         FROM reviews r
+         LEFT JOIN users u ON r.user_id = u.user_id
+         LEFT JOIN products p ON r.product_id = p.product_id
          WHERE r.review_id = ?`,
         [reviewId]
       );
@@ -102,7 +102,7 @@ class Review {
   static async checkUserReview(userId, productId) {
     try {
       const [rows] = await pool.execute(
-        'SELECT * FROM Reviews WHERE user_id = ? AND product_id = ?',
+        'SELECT * FROM reviews WHERE user_id = ? AND product_id = ?',
         [userId, productId]
       );
       
@@ -117,17 +117,94 @@ class Review {
     const { productId, userId, rating, title, content } = reviewData;
     
     try {
-      // Insert the review without status field
-      const [result] = await pool.execute(
-        `INSERT INTO Reviews (product_id, user_id, rating, title, content)
-         VALUES (?, ?, ?, ?, ?)`,
-        [productId, userId, rating, title, content]
-      );
+      console.log('Creating review with data:', {
+        product_id: productId,
+        user_id: userId,
+        rating,
+        title,
+        content
+      });
       
-      return {
-        reviewId: result.insertId,
-        ...reviewData
-      };
+      // Ensure all values are properly formatted
+      const parsedProductId = parseInt(productId, 10);
+      const parsedUserId = parseInt(userId, 10);
+      const parsedRating = parseFloat(rating);
+      
+      if (isNaN(parsedProductId) || isNaN(parsedUserId) || isNaN(parsedRating)) {
+        console.error('Invalid review data:', {
+          productId, parsedProductId,
+          userId, parsedUserId,
+          rating, parsedRating
+        });
+        throw new Error('Invalid review data. Product ID, User ID, and Rating must be valid numbers.');
+      }
+      
+      // Try to insert the review with the standard column names first
+      try {
+        const [result] = await pool.execute(
+          `INSERT INTO reviews (product_id, user_id, rating, title, content, created_at)
+           VALUES (?, ?, ?, ?, ?, NOW())`,
+          [parsedProductId, parsedUserId, parsedRating, title, content]
+        );
+        
+        console.log('Review created successfully, ID:', result.insertId);
+        
+        return {
+          review_id: result.insertId,
+          product_id: parsedProductId,
+          user_id: parsedUserId,
+          rating: parsedRating,
+          title,
+          content,
+          created_at: new Date().toISOString()
+        };
+      } catch (firstError) {
+        // Log the first error
+        console.error('First attempt failed, trying alternative:', firstError.message);
+        
+        // If that fails, try with potentially different column names or formats
+        try {
+          // Try another format (maybe different casing or column order)
+          const [fallbackResult] = await pool.execute(
+            `INSERT INTO Reviews (product_id, user_id, rating, title, content, created_at)
+             VALUES (?, ?, ?, ?, ?, NOW())`,
+            [parsedProductId, parsedUserId, parsedRating, title || '', content || '']
+          );
+          
+          console.log('Review created with alternative query, ID:', fallbackResult.insertId);
+          
+          return {
+            review_id: fallbackResult.insertId,
+            product_id: parsedProductId,
+            user_id: parsedUserId,
+            rating: parsedRating,
+            title: title || '',
+            content: content || '',
+            created_at: new Date().toISOString()
+          };
+        } catch (secondError) {
+          console.error('Second attempt failed:', secondError.message);
+          
+          // Try a minimal column set as a last resort
+          const [minimalResult] = await pool.execute(
+            `INSERT INTO reviews (product_id, user_id, rating)
+             VALUES (?, ?, ?)`,
+            [parsedProductId, parsedUserId, parsedRating]
+          );
+          
+          console.log('Review created with minimal query, ID:', minimalResult.insertId);
+          
+          return {
+            review_id: minimalResult.insertId,
+            product_id: parsedProductId,
+            user_id: parsedUserId,
+            rating: parsedRating,
+            title: title || '',
+            content: content || '',
+            created_at: new Date().toISOString()
+          };
+        }
+      }
     } catch (error) {
       console.error('Error in Review.create:', error);
       throw error;
@@ -140,7 +217,7 @@ class Review {
       
       // Update the review without status field
       const [result] = await pool.execute(
-        `UPDATE Reviews
+        `UPDATE reviews
          SET rating = ?, title = ?, content = ?
          WHERE review_id = ?`,
         [rating, title, content, reviewId]
@@ -156,7 +233,7 @@ class Review {
   static async delete(reviewId) {
     try {
       const [result] = await pool.execute(
-        'DELETE FROM Reviews WHERE review_id = ?',
+        'DELETE FROM reviews WHERE review_id = ?',
         [reviewId]
       );
       
@@ -180,12 +257,18 @@ class Review {
              COUNT(CASE WHEN rating = 3 THEN 1 END) as three_star,
              COUNT(CASE WHEN rating = 2 THEN 1 END) as two_star,
              COUNT(CASE WHEN rating = 1 THEN 1 END) as one_star
-           FROM Reviews
+           FROM reviews
            WHERE product_id = ?`,
           [productId]
         );
         
-        return rows[0];
+        // Ensure average_rating is always a number
+        const stats = {
+          ...rows[0],
+          average_rating: rows[0].average_rating ? parseFloat(rows[0].average_rating) : 0
+        };
+        
+        return stats;
       } catch (queryError) {
         // If error occurs, try the old query with status filtering
         console.error('Stats query failed, trying fallback:', queryError);
@@ -199,12 +282,18 @@ class Review {
              COUNT(CASE WHEN rating = 3 THEN 1 END) as three_star,
              COUNT(CASE WHEN rating = 2 THEN 1 END) as two_star,
              COUNT(CASE WHEN rating = 1 THEN 1 END) as one_star
-           FROM Reviews
+           FROM reviews
            WHERE product_id = ? AND status = 'approved'`,
           [productId]
         );
         
-        return fallbackRows[0];
+        // Ensure average_rating is always a number
+        const stats = {
+          ...fallbackRows[0],
+          average_rating: fallbackRows[0].average_rating ? parseFloat(fallbackRows[0].average_rating) : 0
+        };
+        
+        return stats;
       }
     } catch (error) {
       console.error('Error in Review.getProductStats:', error);
