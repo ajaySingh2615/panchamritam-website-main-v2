@@ -8,7 +8,7 @@ import './ProductDetails.css';
 const ProductDetails = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, removeFromCart, cart, updateCartItemQuantity } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,6 +16,7 @@ const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [selectedImage, setSelectedImage] = useState(0);
   const [isInCart, setIsInCart] = useState(false);
+  const [cartQuantity, setCartQuantity] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
   const imageRef = useRef(null);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
@@ -72,37 +73,127 @@ const ProductDetails = () => {
     );
   };
 
+  // Check if product is in cart
+  useEffect(() => {
+    if (product && cart && cart.length > 0) {
+      console.log('Checking if product is in cart:', {
+        productId: product.product_id,
+        cart: cart
+      });
+      
+      // Use more reliable comparison (by ID) to find the product in cart
+      const cartItem = cart.find(item => {
+        // Get all possible IDs from the product
+        const productId = parseInt(product.product_id);
+        const itemProductId = item.product_id ? parseInt(item.product_id) : null;
+        const itemId = item.id ? parseInt(item.id) : null;
+        
+        // Compare with all possible IDs from the cart item
+        return productId === itemProductId || productId === itemId;
+      });
+      
+      if (cartItem) {
+        console.log('Found product in cart:', cartItem);
+        setIsInCart(true);
+        setCartQuantity(cartItem.quantity);
+        // Update the quantity input to match cart quantity
+        setQuantity(cartItem.quantity);
+      } else {
+        console.log('Product not found in cart');
+        setIsInCart(false);
+        setCartQuantity(0);
+        // Reset quantity to 1 when not in cart
+        setQuantity(1);
+      }
+    } else {
+      // Reset states when cart is empty
+      setIsInCart(false);
+      setCartQuantity(0);
+      setQuantity(1);
+    }
+  }, [product, cart]);
+
   // Quantity handlers
   const handleQuantityChange = (e) => {
     const value = parseInt(e.target.value);
-    if (value > 0 && value <= (product?.quantity || 10)) {
+    if (value > 0 && value <= (product?.quantity - cartQuantity + (isInCart ? cartQuantity : 0))) {
       setQuantity(value);
+      
+      // If already in cart, update the cart quantity directly
+      if (isInCart) {
+        updateCartItemQuantity(parseInt(product.product_id), value);
+        setCartQuantity(value);
+      }
     }
   };
 
   const increaseQuantity = () => {
-    if (quantity < (product?.quantity || 10)) {
-      setQuantity(prev => prev + 1);
+    if (quantity < (product?.quantity - cartQuantity + (isInCart ? cartQuantity : 0))) {
+      const newQuantity = quantity + 1;
+      setQuantity(newQuantity);
+      
+      // If already in cart, update the cart quantity directly
+      if (isInCart) {
+        updateCartItemQuantity(parseInt(product.product_id), newQuantity);
+        setCartQuantity(newQuantity);
+      }
     }
   };
 
   const decreaseQuantity = () => {
     if (quantity > 1) {
-      setQuantity(prev => prev - 1);
+      const newQuantity = quantity - 1;
+      setQuantity(newQuantity);
+      
+      // If already in cart, update the cart quantity directly
+      if (isInCart) {
+        updateCartItemQuantity(parseInt(product.product_id), newQuantity);
+        setCartQuantity(newQuantity);
+      }
+    } else if (quantity === 1 && isInCart) {
+      // Remove from cart if decreasing from 1
+      handleRemoveFromCart();
     }
   };
 
   // Cart handlers
   const handleAddToCart = () => {
     if (product && product.quantity > 0) {
-      addToCart({ ...product, quantity });
+      // Create a consistent product object for the cart
+      const productToAdd = {
+        ...product,
+        product_id: parseInt(product.product_id),
+        id: parseInt(product.product_id), // Add id field for consistency
+        cartQuantity: quantity // Use cartQuantity to distinguish from stock quantity
+      };
+      
+      addToCart(productToAdd);
       setIsInCart(true);
+      setCartQuantity(quantity);
+    }
+  };
+
+  const handleRemoveFromCart = () => {
+    if (product) {
+      // Pass both possible ID formats to ensure removal works
+      removeFromCart(parseInt(product.product_id));
+      setIsInCart(false);
+      setCartQuantity(0);
+      setQuantity(1); // Reset to 1 for potential new addition
     }
   };
 
   const handleBuyNow = () => {
     if (product && product.quantity > 0) {
-      addToCart({ ...product, quantity });
+      // Create a consistent product object for the cart
+      const productToAdd = {
+        ...product,
+        product_id: parseInt(product.product_id),
+        id: parseInt(product.product_id), // Add id field for consistency
+        cartQuantity: quantity // Use cartQuantity to distinguish from stock quantity
+      };
+      
+      addToCart(productToAdd);
       navigate('/cart');
     }
   };
@@ -521,7 +612,7 @@ const ProductDetails = () => {
               </span>
               {product.stock_status !== 'Out of Stock' && (
                 <span className="ml-2 text-gray-500">
-                  ({product.quantity} available)
+                  ({product.quantity - cartQuantity} available)
                 </span>
               )}
             </div>
@@ -569,21 +660,21 @@ const ProductDetails = () => {
                 
                 {/* Action Buttons */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button
+                  <button 
                     type="button"
-                    onClick={handleAddToCart}
+                    onClick={isInCart ? handleRemoveFromCart : handleAddToCart}
                     className={`flex items-center justify-center px-6 py-3 text-white font-medium rounded-md transition duration-300 ${
                       isInCart
-                        ? 'bg-green-600 hover:bg-green-700'
+                        ? 'bg-red-600 hover:bg-red-700'
                         : 'bg-[#9bc948] hover:bg-[#8ab938]'
                     }`}
                   >
                     {isInCart ? (
                       <>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        Added to Cart
+                        Remove from Cart
                       </>
                     ) : (
                       <>
@@ -594,7 +685,7 @@ const ProductDetails = () => {
                       </>
                     )}
                   </button>
-                  <button
+                  <button 
                     type="button"
                     onClick={handleBuyNow}
                     className="flex items-center justify-center px-6 py-3 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-700 transition duration-300"

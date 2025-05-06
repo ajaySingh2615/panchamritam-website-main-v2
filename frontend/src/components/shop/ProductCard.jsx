@@ -16,7 +16,12 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   const handleAddToCart = (e) => {
     e.preventDefault();
-    addToCart(product);
+    // Create a modified product with quantity explicitly set to 1
+    const productToAdd = {
+      ...product,
+      cartQuantity: 1 // Using a different property name to avoid confusion with stock quantity
+    };
+    addToCart(productToAdd);
   };
   
   const handleIncreaseQuantity = (e) => {

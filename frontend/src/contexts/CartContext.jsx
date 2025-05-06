@@ -17,7 +17,12 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+      try {
+        setCartItems(JSON.parse(savedCart));
+      } catch (error) {
+        console.error("Error parsing cart from localStorage:", error);
+        setCartItems([]);
+      }
     }
   }, []);
 
@@ -28,25 +33,57 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.product_id === product.product_id);
+      console.log("Adding to cart:", product);
+      console.log("Current cart:", prevItems);
+      
+      // Ensure we have proper product_id and normalize it to number
+      const productId = parseInt(product.product_id || product.id);
+      
+      if (!productId) {
+        console.error("Product has no valid ID:", product);
+        return prevItems;
+      }
+      
+      // Determine the quantity to add (use cartQuantity first, then quantity if provided, default to 1)
+      // This separates the "quantity to add to cart" from the "stock quantity"
+      const quantityToAdd = product.cartQuantity || (typeof product.quantity === 'number' && product.quantity > 0 && product.quantity < 10 ? product.quantity : 1);
+      
+      // Find existing item by checking all possible ID formats
+      const existingItem = prevItems.find(item => 
+        parseInt(item.product_id) === productId || 
+        (item.id && parseInt(item.id) === productId)
+      );
       
       if (existingItem) {
+        console.log("Found existing item, updating quantity:", existingItem);
+        
         return prevItems.map(item =>
-          item.product_id === product.product_id
-            ? { ...item, quantity: item.quantity + 1 }
+          (parseInt(item.product_id) === productId || (item.id && parseInt(item.id) === productId))
+            ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
       }
       
-      // Always set the initial quantity to 1 for new items
-      return [...prevItems, { ...product, quantity: 1 }];
+      // Create new item with appropriate quantity
+      const newItem = { 
+        ...product, 
+        product_id: productId,
+        id: productId, // Add id field for consistency
+        quantity: quantityToAdd // Use our determined quantity
+      };
+      
+      console.log("Adding new item to cart:", newItem);
+      return [...prevItems, newItem];
     });
   };
 
   const updateQuantity = (productId, quantity) => {
+    // Normalize productId to number
+    const normalizedId = parseInt(productId);
+    
     setCartItems(prevItems =>
       prevItems.map(item =>
-        item.product_id === productId
+        parseInt(item.product_id) === normalizedId || (item.id && parseInt(item.id) === normalizedId)
           ? { ...item, quantity }
           : item
       )
@@ -54,8 +91,14 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeFromCart = (productId) => {
+    // Normalize productId to number
+    const normalizedId = parseInt(productId);
+    
     setCartItems(prevItems =>
-      prevItems.filter(item => item.product_id !== productId)
+      prevItems.filter(item => 
+        parseInt(item.product_id) !== normalizedId && 
+        (!item.id || parseInt(item.id) !== normalizedId)
+      )
     );
   };
 
@@ -76,6 +119,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const value = {
+    cartItems, // Expose cartItems directly
     cart: cartItems,
     addToCart,
     updateCartItemQuantity: updateQuantity,
