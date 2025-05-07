@@ -772,10 +772,10 @@ const ProductDetails = () => {
             
             {/* Ratings */}
             <div className="flex items-center mb-4">
-                {renderStarRating(product.rating)}
+                {renderStarRating(reviewStats.average_rating || product.rating)}
               <span className="ml-2 text-gray-500 text-sm">
-                {product.review_count 
-                  ? `(${product.review_count} ${product.review_count === 1 ? 'review' : 'reviews'})`
+                {reviewStats.total_reviews > 0 
+                  ? `(${reviewStats.total_reviews} ${reviewStats.total_reviews === 1 ? 'review' : 'reviews'})`
                   : '(No reviews yet)'
                 }
               </span>
