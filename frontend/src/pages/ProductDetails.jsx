@@ -44,6 +44,11 @@ const ProductDetails = () => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [userReview, setUserReview] = useState(null);
   
+  // Related Products state
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [relatedError, setRelatedError] = useState(null);
+  
   // Fetch auth token from localStorage to check if user should be logged in
   const [localToken, setLocalToken] = useState(localStorage.getItem('token'));
   
@@ -76,8 +81,10 @@ const ProductDetails = () => {
   
   const renderStarRating = (rating) => {
     const stars = [];
-    const fullStars = Math.floor(rating || 0);
-    const hasHalfStar = (rating || 0) % 1 >= 0.5;
+    // Ensure rating is a valid number
+    const ratingValue = parseFloat(rating || 0);
+    const fullStars = Math.floor(ratingValue);
+    const hasHalfStar = ratingValue % 1 >= 0.5;
     
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
@@ -104,7 +111,9 @@ const ProductDetails = () => {
     return (
       <div className="flex items-center">
         {stars}
-        <span className="ml-2 text-gray-600">{rating ? `${rating.toFixed(1)}/5` : 'No ratings yet'}</span>
+        <span className="ml-2 text-gray-600">
+          {ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : 'No ratings yet'}
+        </span>
       </div>
     );
   };
@@ -390,7 +399,43 @@ const ProductDetails = () => {
       setLoading(false);
     }
   }, [productId]);
-
+  
+  // Fetch related products
+  const fetchRelatedProducts = async () => {
+    if (!product?.category_id) return;
+    
+    try {
+      setRelatedLoading(true);
+      // For now, we'll use the existing products API to get products in the same category
+      const response = await axios.get(`${API_ENDPOINTS.PRODUCTS}?category=${product.category_id}`);
+      
+      let productsData = [];
+      
+      // Handle different response formats
+      if (response.data.data && Array.isArray(response.data.data.products)) {
+        productsData = response.data.data.products;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        productsData = response.data.data;
+      } else if (Array.isArray(response.data.products)) {
+        productsData = response.data.products;
+      } else if (Array.isArray(response.data)) {
+        productsData = response.data;
+      }
+      
+      // Filter out the current product and limit to 4 products
+      const filtered = productsData
+        .filter(p => p.product_id !== parseInt(productId) && p.product_id !== productId)
+        .slice(0, 4);
+      
+      setRelatedProducts(filtered);
+    } catch (error) {
+      console.error('Error fetching related products:', error);
+      setRelatedError('Unable to load related products. Please try again later.');
+    } finally {
+      setRelatedLoading(false);
+    }
+  };
+  
   // Toggle between image and video display
   const toggleMediaType = () => {
     setShowVideo(!showVideo);
@@ -499,6 +544,13 @@ const ProductDetails = () => {
       fetchReviews();
     }
   }, [activeTab, productId, isAuthenticated, user]); // Include authentication dependencies
+
+  // Fetch related products when product data changes
+  useEffect(() => {
+    if (product?.category_id) {
+      fetchRelatedProducts();
+    }
+  }, [product?.category_id, productId]); // Add productId as dependency
 
   // Handle new review submission
   const handleReviewSubmit = (newReview) => {
@@ -1178,6 +1230,116 @@ const ProductDetails = () => {
             </div>
             )}
           </div>
+        </div>
+        
+        {/* Related Products Section */}
+        <div className="my-16">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">You Might Also Like</h2>
+          
+          {relatedLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-gray-100 rounded-lg p-4 animate-pulse h-64"></div>
+              ))}
+            </div>
+          ) : relatedError ? (
+            <p className="text-gray-500">{relatedError}</p>
+          ) : relatedProducts.length === 0 ? (
+            <p className="text-gray-500">No related products found</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {relatedProducts.map(relatedProduct => {
+                // Check if the related product is already in cart
+                const isRelatedProductInCart = cart.some(item => {
+                  const relatedProductId = parseInt(relatedProduct.product_id);
+                  const itemProductId = item.product_id ? parseInt(item.product_id) : null;
+                  const itemId = item.id ? parseInt(item.id) : null;
+                  return relatedProductId === itemProductId || relatedProductId === itemId;
+                });
+                
+                return (
+                <div key={relatedProduct.product_id} className="bg-white rounded-lg shadow-sm overflow-hidden transition-transform duration-300 hover:shadow-md hover:-translate-y-1">
+                  <Link to={`/product/${relatedProduct.product_id}`} className="block">
+                    <div className="relative pb-[100%]">
+                      <img 
+                        src={relatedProduct.image_url || '/placeholder-product.jpg'} 
+                        alt={relatedProduct.name}
+                        className="absolute inset-0 w-full h-full object-cover" 
+                        onError={(e) => {
+                          e.target.onerror = null; 
+                          e.target.src = '/placeholder-product.jpg';
+                        }}
+                      />
+                      
+                      {relatedProduct.regular_price > relatedProduct.price && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                          {Math.round(((relatedProduct.regular_price - relatedProduct.price) / relatedProduct.regular_price) * 100)}% OFF
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="p-4">
+                      <h3 className="text-sm font-medium text-gray-800 line-clamp-2 h-10 mb-2">{relatedProduct.name}</h3>
+                      
+                      <div className="flex items-center mb-2">
+                        {renderStarRating(relatedProduct.rating || 0)}
+                      </div>
+                      
+                      <div className="flex items-baseline">
+                        <span className="text-base font-bold text-gray-800">₹{formatPrice(relatedProduct.price)}</span>
+                        {relatedProduct.regular_price > relatedProduct.price && (
+                          <span className="ml-2 text-sm text-gray-500 line-through">₹{formatPrice(relatedProduct.regular_price)}</span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                  
+                  <div className="px-4 pb-4">
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (isRelatedProductInCart) {
+                          // Remove from cart if already in cart
+                          removeFromCart(parseInt(relatedProduct.product_id));
+                        } else {
+                          // Add to cart with quantity of 1
+                          const productToAdd = {
+                            ...relatedProduct,
+                            product_id: parseInt(relatedProduct.product_id),
+                            id: parseInt(relatedProduct.product_id),
+                            cartQuantity: 1
+                          };
+                          addToCart(productToAdd);
+                        }
+                      }}
+                      className={`w-full text-white text-sm font-medium py-2 rounded-md transition duration-300 flex items-center justify-center ${
+                        isRelatedProductInCart
+                          ? 'bg-red-600 hover:bg-red-700'
+                          : 'bg-[#9bc948] hover:bg-[#8ab938]'
+                      }`}
+                    >
+                      {isRelatedProductInCart ? (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Remove
+                        </>
+                      ) : (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          Add to Cart
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
