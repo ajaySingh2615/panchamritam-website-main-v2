@@ -1,5 +1,4 @@
 import React from 'react';
-import './ReviewsList.css';
 
 const ReviewsList = ({ reviews, loading, error }) => {
   // Helper function for user avatar/initials
@@ -55,12 +54,15 @@ const ReviewsList = ({ reviews, loading, error }) => {
   }
 
   return (
-    <div className="reviews-list space-y-6">
+    <div className="flex flex-col gap-6 mb-8">
       {reviews.map((review) => (
-        <div key={review.review_id} className="review-item p-5 bg-white border border-gray-100 rounded-lg shadow-sm">
+        <div 
+          key={review.review_id} 
+          className="border border-gray-100 rounded-lg p-5 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+        >
           <div className="flex items-start">
             {/* User avatar/initials */}
-            <div className="review-avatar">
+            <div>
               {review.avatar_url ? (
                 <img 
                   src={review.avatar_url} 

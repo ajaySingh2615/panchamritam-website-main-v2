@@ -1,5 +1,4 @@
 import React from 'react';
-import './ReviewSummary.css';
 
 const ReviewSummary = ({ stats, totalReviews }) => {
   const { 
@@ -21,27 +20,27 @@ const ReviewSummary = ({ stats, totalReviews }) => {
   };
 
   return (
-    <div className="review-summary">
-      <div className="average-rating">
-        <div className="rating-number">
+    <div className="flex flex-col mb-8 md:flex-row md:gap-8">
+      <div className="flex flex-col items-center justify-center bg-gray-50 p-6 rounded-lg mb-6 md:mb-0 md:flex-1">
+        <div className="text-5xl font-bold text-slate-800 leading-none mb-2">
           {avgRating.toFixed(1)}
         </div>
-        <div className="rating-stars">
+        <div className="flex mb-3">
           {[1, 2, 3, 4, 5].map((star) => (
             <span
               key={star}
-              className={`star ${star <= Math.round(avgRating) ? 'filled' : ''}`}
+              className={`text-xl mx-0.5 ${star <= Math.round(avgRating) ? 'text-yellow-400' : 'text-gray-300'}`}
             >
               ★
             </span>
           ))}
         </div>
-        <div className="rating-count">
+        <div className="text-sm text-gray-500">
           Based on {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}
         </div>
       </div>
 
-      <div className="rating-bars">
+      <div className="flex flex-col gap-3 md:flex-2">
         {[
           { stars: 5, count: five_star },
           { stars: 4, count: four_star },
@@ -49,15 +48,19 @@ const ReviewSummary = ({ stats, totalReviews }) => {
           { stars: 2, count: two_star },
           { stars: 1, count: one_star }
         ].map(({ stars, count }) => (
-          <div key={stars} className="rating-bar-container">
-            <div className="rating-label">{stars} star</div>
-            <div className="rating-bar-wrapper">
+          <div key={stars} className="flex items-center gap-3">
+            <div className="w-[60px] text-sm text-gray-500 text-right">
+              {stars} star
+            </div>
+            <div className="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="rating-bar-fill"
+                className="h-full bg-yellow-400 rounded-full transition-all duration-300"
                 style={{ width: `${getPercentage(count)}%` }}
               ></div>
             </div>
-            <div className="rating-count-small">{count}</div>
+            <div className="w-[30px] text-sm text-gray-500 text-left">
+              {count}
+            </div>
           </div>
         ))}
       </div>

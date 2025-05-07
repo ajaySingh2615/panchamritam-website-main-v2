@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../config/api';
-import './ReviewForm.css';
 
 const ReviewForm = ({ productId, onReviewSubmit, existingReview = null, onCancel }) => {
   const { isAuthenticated, user } = useAuth();
@@ -195,11 +194,11 @@ const ReviewForm = ({ productId, onReviewSubmit, existingReview = null, onCancel
   // Render star rating element
   const renderStarRating = () => {
     return (
-      <div className="star-rating">
+      <div className="flex mb-2">
         {[1, 2, 3, 4, 5].map((star) => (
           <span
             key={star}
-            className={`star ${star <= formData.rating ? 'active' : ''}`}
+            className={`text-3xl cursor-pointer mr-1 transition-colors ${star <= formData.rating ? 'text-yellow-400' : 'text-gray-300'}`}
             onClick={() => handleStarClick(star)}
             role="button"
             tabIndex="0"
@@ -207,32 +206,36 @@ const ReviewForm = ({ productId, onReviewSubmit, existingReview = null, onCancel
             ★
           </span>
         ))}
-        {errors.rating && <div className="error-message">{errors.rating}</div>}
+        {errors.rating && <div className="text-red-600 text-sm mt-1">{errors.rating}</div>}
       </div>
     );
   };
 
   return (
-    <div className="review-form-container">
-      <h3 className="form-title">
+    <div className="bg-white rounded-lg p-6 mb-8 shadow-sm">
+      <h3 className="text-xl font-semibold mb-6 text-gray-800">
         {existingReview ? 'Edit Your Review' : 'Write a Review'}
       </h3>
       
       {status && (
-        <div className={`status-message ${status.type}`}>
+        <div className={`p-3 rounded mb-4 text-sm ${
+          status.type === 'success' 
+            ? 'bg-green-50 border border-green-200 text-green-800' 
+            : 'bg-red-50 border border-red-200 text-red-800'
+        }`}>
           {status.message}
         </div>
       )}
       
       {(isAuthenticated || hasValidToken) ? (
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Your Rating*</label>
+          <div className="mb-5">
+            <label className="block font-medium mb-2 text-gray-700">Your Rating*</label>
             {renderStarRating()}
           </div>
           
-          <div className="form-group">
-            <label htmlFor="title">Review Title*</label>
+          <div className="mb-5">
+            <label htmlFor="title" className="block font-medium mb-2 text-gray-700">Review Title*</label>
             <input
               type="text"
               id="title"
@@ -241,12 +244,13 @@ const ReviewForm = ({ productId, onReviewSubmit, existingReview = null, onCancel
               onChange={handleChange}
               placeholder="Give your review a title"
               maxLength="100"
+              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-[#9bc948] transition"
             />
-            {errors.title && <div className="error-message">{errors.title}</div>}
+            {errors.title && <div className="text-red-600 text-sm mt-1">{errors.title}</div>}
           </div>
           
-          <div className="form-group">
-            <label htmlFor="content">Your Review</label>
+          <div className="mb-5">
+            <label htmlFor="content" className="block font-medium mb-2 text-gray-700">Your Review</label>
             <textarea
               id="content"
               name="content"
@@ -255,15 +259,16 @@ const ReviewForm = ({ productId, onReviewSubmit, existingReview = null, onCancel
               placeholder="Share your experience with this product"
               rows="5"
               maxLength="1000"
+              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-[#9bc948] transition"
             ></textarea>
           </div>
           
-          <div className="form-actions">
+          <div className="flex justify-end gap-4 mt-6">
             {onCancel && (
               <button 
                 type="button" 
                 onClick={onCancel} 
-                className="cancel-button"
+                className="px-6 py-3 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition disabled:opacity-70 disabled:cursor-not-allowed"
                 disabled={loading}
               >
                 Cancel
@@ -271,7 +276,7 @@ const ReviewForm = ({ productId, onReviewSubmit, existingReview = null, onCancel
             )}
             <button 
               type="submit" 
-              className="submit-button"
+              className="px-6 py-3 bg-[#9bc948] text-white rounded hover:bg-[#8ab938] transition disabled:bg-[#b3d475] disabled:cursor-not-allowed"
               disabled={loading}
             >
               {loading ? 'Submitting...' : (existingReview ? 'Update Review' : 'Submit Review')}
@@ -279,8 +284,8 @@ const ReviewForm = ({ productId, onReviewSubmit, existingReview = null, onCancel
           </div>
         </form>
       ) : (
-        <div className="login-prompt">
-          Please <a href="/login">sign in</a> to write a review.
+        <div className="text-center p-6 bg-gray-50 rounded">
+          Please <a href="/login" className="text-[#9bc948] font-medium hover:underline">sign in</a> to write a review.
         </div>
       )}
     </div>

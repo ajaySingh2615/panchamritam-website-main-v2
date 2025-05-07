@@ -651,7 +651,7 @@ const ProductDetails = () => {
                 </div>
               ) : (
                 <div
-                  ref={imageRef}
+              ref={imageRef}
                   className="w-full h-full relative cursor-zoom-in"
                   onMouseMove={handleImageMouseMove}
                   onMouseEnter={handleImageMouseEnter}
@@ -725,8 +725,8 @@ const ProductDetails = () => {
                       e.target.onerror = null; 
                       e.target.src = '/placeholder-product.jpg';
                     }}
-                  />
-                </div>
+              />
+            </div>
               ))}
               
               {/* Video Thumbnail (if available) */}
@@ -787,7 +787,7 @@ const ProductDetails = () => {
                 <div className="flex items-center">
                   <span className="text-3xl font-bold text-gray-800">
                     ₹{formatPrice(product.price)}
-                  </span>
+                </span>
                   <span className="ml-3 text-xl text-gray-500 line-through">
                     ₹{formatPrice(product.regular_price)}
                   </span>
@@ -806,7 +806,7 @@ const ProductDetails = () => {
             {product.short_description && (
               <div className="mb-6 text-gray-600">
                 <p>{product.short_description}</p>
-              </div>
+            </div>
             )}
             
             {/* Divider */}
@@ -896,7 +896,7 @@ const ProductDetails = () => {
                       </>
                     )}
                     </button>
-                  <button 
+                    <button 
                     type="button"
                     onClick={handleBuyNow}
                     className="flex items-center justify-center px-6 py-3 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-700 transition duration-300"
@@ -959,19 +959,19 @@ const ProductDetails = () => {
                     {product.eco_friendly_details || "This product is sustainably sourced and uses eco-friendly packaging, minimizing environmental impact."}
                   </p>
                 </div>
-              </div>
+                </div>
             )}
             
             {/* Secure Checkout */}
             <div className="mb-4 flex items-center text-gray-600 text-sm">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+                  </svg>
               Secure Checkout
+                </div>
+                </div>
             </div>
-          </div>
-        </div>
-        
+            
         {/* Product Tabs Section */}
         <div className="mt-12 mb-16">
           {/* Tab Navigation */}
@@ -996,8 +996,8 @@ const ProductDetails = () => {
                 onClick={() => setActiveTab('additional')}
               >
                 Additional Information
-              </button>
-              <button
+            </button>
+            <button 
                 className={`py-4 font-medium text-center border-b-2 focus:outline-none whitespace-nowrap ${
                   activeTab === 'reviews'
                     ? 'border-[#9bc948] text-[#9bc948]'
@@ -1032,8 +1032,8 @@ const ProductDetails = () => {
                   ) : (
                     <p>No detailed description available for this product.</p>
                   )}
-                </div>
               </div>
+            </div>
             )}
             
             {/* Additional Information Tab */}
@@ -1118,7 +1118,7 @@ const ProductDetails = () => {
                         Retry Loading Reviews
                       </button>
                     )}
-                  </div>
+              </div>
                 )}
                 
                 {/* Rating Summary */}
@@ -1137,7 +1137,7 @@ const ProductDetails = () => {
                   loading={reviewsLoading}
                   error={reviewsError}
                 />
-              </div>
+            </div>
             )}
             
             {/* Shipping & Returns Tab */}
