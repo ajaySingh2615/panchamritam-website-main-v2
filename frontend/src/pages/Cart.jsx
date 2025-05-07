@@ -54,7 +54,7 @@ const Cart = () => {
   };
 
   return (
-    <div className="bg-[#f8f6f3] min-h-screen pt-8 pb-12">
+    <div className="bg-[#f8f6f3] min-h-screen pt-24 pb-12">
       <div className="container mx-auto px-4">
         <Breadcrumb items={breadcrumbItems} />
 
