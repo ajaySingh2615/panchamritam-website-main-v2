@@ -294,6 +294,241 @@ class Order {
       throw error;
     }
   }
+  
+  // Calculate taxes for cart items before order creation
+  static async calculateCartTaxes(cartItems) {
+    try {
+      const Product = require('./product');
+      
+      let subtotal = 0;
+      let totalTax = 0;
+      
+      // Process each cart item to calculate tax
+      const itemsWithTax = await Promise.all(cartItems.map(async (item) => {
+        try {
+          // Get product tax information
+          const taxInfo = await Product.getTaxInfo(item.product_id);
+          
+          if (!taxInfo) {
+            throw new Error(`Product with ID ${item.product_id} not found`);
+          }
+          
+          // Calculate item totals
+          const itemSubtotal = parseFloat(item.price) * item.quantity;
+          const itemTaxRate = taxInfo.gst_rate ? parseFloat(taxInfo.gst_rate.percentage) : 0;
+          const itemTaxAmount = (itemSubtotal * itemTaxRate) / 100;
+          
+          // Add to running totals
+          subtotal += itemSubtotal;
+          totalTax += itemTaxAmount;
+          
+          // Return item with tax information
+          return {
+            ...item,
+            tax_rate: itemTaxRate,
+            tax_amount: itemTaxAmount,
+            hsn_code: taxInfo.hsn_code || null,
+            total_price: itemSubtotal + itemTaxAmount
+          };
+        } catch (error) {
+          console.error(`Error calculating tax for product ${item.product_id}:`, error);
+          // Return item without tax information as fallback
+          return {
+            ...item,
+            tax_rate: 0,
+            tax_amount: 0,
+            hsn_code: null,
+            total_price: parseFloat(item.price) * item.quantity
+          };
+        }
+      }));
+      
+      return {
+        items: itemsWithTax,
+        subtotal,
+        total_tax: totalTax,
+        total: subtotal + totalTax
+      };
+    } catch (error) {
+      console.error('Error in Order.calculateCartTaxes:', error);
+      throw error;
+    }
+  }
+  
+  // Enhanced createOrder method with tax calculations
+  static async createOrderWithTax(orderData, cartItems) {
+    try {
+      // Calculate taxes for cart items
+      const taxCalculation = await this.calculateCartTaxes(cartItems);
+      
+      // Begin transaction
+      const connection = await pool.getConnection();
+      await connection.beginTransaction();
+      
+      try {
+        // Create order with tax information
+        const [orderResult] = await connection.execute(
+          `INSERT INTO Orders (
+            user_id, address_id, subtotal, total_tax, total_price, 
+            status, payment_method, payment_status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            orderData.user_id,
+            orderData.address_id,
+            taxCalculation.subtotal,
+            taxCalculation.total_tax,
+            taxCalculation.total,
+            orderData.status || 'pending',
+            orderData.payment_method || 'Cash on Delivery',
+            orderData.payment_status || 'pending'
+          ]
+        );
+        
+        const orderId = orderResult.insertId;
+        
+        // Insert order items with tax information
+        for (const item of taxCalculation.items) {
+          await connection.execute(
+            `INSERT INTO Order_Items (
+              order_id, product_id, quantity, price, 
+              tax_rate, tax_amount, hsn_code
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              orderId,
+              item.product_id,
+              item.quantity,
+              item.price,
+              item.tax_rate,
+              item.tax_amount,
+              item.hsn_code
+            ]
+          );
+        }
+        
+        await connection.commit();
+        
+        // Get the created order
+        const order = await this.findById(orderId);
+        
+        return order;
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('Error in Order.createOrderWithTax:', error);
+      throw error;
+    }
+  }
+  
+  // Generate tax invoice data for an order
+  static async generateTaxInvoice(orderId) {
+    try {
+      // Get order details
+      const order = await this.findById(orderId);
+      
+      if (!order) {
+        throw new Error('Order not found');
+      }
+      
+      // Get order items with tax details
+      const [items] = await pool.execute(
+        `SELECT oi.*, p.name, p.sku, p.image_url
+         FROM Order_Items oi
+         JOIN Products p ON oi.product_id = p.product_id
+         WHERE oi.order_id = ?`,
+        [orderId]
+      );
+      
+      // Group items by tax rate for tax summary
+      const taxSummary = items.reduce((summary, item) => {
+        const taxRate = parseFloat(item.tax_rate);
+        if (!summary[taxRate]) {
+          summary[taxRate] = {
+            rate: taxRate,
+            taxable_amount: 0,
+            tax_amount: 0
+          };
+        }
+        
+        const itemPrice = parseFloat(item.price) * item.quantity;
+        summary[taxRate].taxable_amount += itemPrice;
+        summary[taxRate].tax_amount += parseFloat(item.tax_amount);
+        
+        return summary;
+      }, {});
+      
+      // Convert tax summary to array
+      const taxBreakdown = Object.values(taxSummary);
+      
+      // Get customer and address details
+      const [userRows] = await pool.execute(
+        'SELECT * FROM Users WHERE user_id = ?',
+        [order.user_id]
+      );
+      
+      const [addressRows] = await pool.execute(
+        'SELECT * FROM Addresses WHERE address_id = ?',
+        [order.address_id]
+      );
+      
+      const customer = userRows.length > 0 ? userRows[0] : null;
+      const address = addressRows.length > 0 ? addressRows[0] : null;
+      
+      return {
+        invoice: {
+          order_id: orderId,
+          invoice_number: `INV-${orderId}`,
+          invoice_date: order.created_at,
+          order_date: order.created_at,
+          status: order.status
+        },
+        customer: {
+          id: customer?.user_id,
+          name: customer?.name,
+          email: customer?.email,
+          phone: customer?.phone
+        },
+        shipping_address: address ? {
+          name: address.name,
+          address_line1: address.address_line1,
+          address_line2: address.address_line2,
+          city: address.city,
+          state: address.state,
+          postal_code: address.postal_code,
+          country: address.country,
+          phone: address.phone
+        } : null,
+        items: items.map(item => ({
+          product_id: item.product_id,
+          name: item.name,
+          sku: item.sku,
+          hsn_code: item.hsn_code,
+          quantity: item.quantity,
+          price: parseFloat(item.price),
+          subtotal: parseFloat(item.price) * item.quantity,
+          tax_rate: parseFloat(item.tax_rate),
+          tax_amount: parseFloat(item.tax_amount),
+          total: (parseFloat(item.price) * item.quantity) + parseFloat(item.tax_amount)
+        })),
+        summary: {
+          subtotal: parseFloat(order.subtotal),
+          tax_breakdown: taxBreakdown,
+          total_tax: parseFloat(order.total_tax),
+          total: parseFloat(order.total_price)
+        },
+        payment: {
+          method: order.payment_method,
+          status: order.payment_status
+        }
+      };
+    } catch (error) {
+      console.error('Error in Order.generateTaxInvoice:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = Order; 

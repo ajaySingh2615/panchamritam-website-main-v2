@@ -21,4 +21,10 @@ router.post('/:id/upload-image', protect, restrictTo('admin'), uploadSingleImage
 router.post('/:id/upload-gallery', protect, restrictTo('admin'), uploadMultipleImages, handleMulterError, productController.uploadGalleryImages);
 router.post('/:id/save-video-url', protect, restrictTo('admin'), productController.saveVideoUrl);
 
+// Tax-related routes
+router.get('/:id/tax', productController.getProductTaxInfo);
+router.patch('/:id/tax', protect, restrictTo('admin'), productController.updateProductTaxAttributes);
+router.post('/bulk-update-tax', protect, restrictTo('admin'), productController.bulkUpdateProductTaxAttributes);
+router.get('/:id/price-with-tax', productController.calculatePriceWithTax);
+
 module.exports = router; 

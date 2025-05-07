@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import CartItemRow from '../components/cart/CartItemRow';
 import Breadcrumb from '../components/common/Breadcrumb';
+import TaxService from '../services/taxService';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -14,8 +15,57 @@ const Cart = () => {
     error, 
     updateCartItemQuantity, 
     removeFromCart, 
-    clearCart 
+    clearCart,
+    getCartTotal 
   } = useCart();
+  const [cartTotals, setCartTotals] = useState({ subtotal: '0.00', tax: '0.00', total: '0.00' });
+  const [taxBreakdown, setTaxBreakdown] = useState([]);
+  const [showTaxBreakdown, setShowTaxBreakdown] = useState(false);
+
+  useEffect(() => {
+    // Get cart totals including tax
+    const totals = getCartTotal();
+    setCartTotals(totals);
+    
+    // Get tax breakdown if items exist
+    if (cartItems.length > 0) {
+      fetchTaxBreakdown();
+    } else {
+      setTaxBreakdown([]);
+    }
+  }, [cartItems, getCartTotal]);
+
+  // Fetch detailed tax breakdown for items in cart
+  const fetchTaxBreakdown = async () => {
+    try {
+      // This would typically be an API call to get tax breakdown by HSN codes
+      // For now, we'll just simulate it by grouping cart items by tax rate
+      const taxGroups = {};
+      
+      cartItems.forEach(item => {
+        const taxRate = item.tax_rate || 0;
+        const itemSubtotal = parseFloat(item.price) * item.quantity;
+        const itemTax = itemSubtotal * taxRate / 100;
+        
+        if (!taxGroups[taxRate]) {
+          taxGroups[taxRate] = {
+            rate: taxRate,
+            taxable_amount: 0,
+            tax_amount: 0,
+            items: []
+          };
+        }
+        
+        taxGroups[taxRate].taxable_amount += itemSubtotal;
+        taxGroups[taxRate].tax_amount += itemTax;
+        taxGroups[taxRate].items.push(item);
+      });
+      
+      setTaxBreakdown(Object.values(taxGroups));
+    } catch (error) {
+      console.error('Error fetching tax breakdown:', error);
+    }
+  };
 
   const handleQuantityChange = (productId, newQuantity) => {
     updateCartItemQuantity(productId, newQuantity);
@@ -34,14 +84,10 @@ const Cart = () => {
     }
   };
 
-  const subtotal = cartItems.reduce((total, item) => {
-    return total + (parseFloat(item.price) * item.quantity);
-  }, 0);
-
   // For simplicity, we'll use a flat rate shipping fee for orders under a threshold
   const FREE_SHIPPING_THRESHOLD = 500; // ₹500 for free shipping
-  const SHIPPING_COST = subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD ? 50 : 0; // ₹50 shipping fee
-  const total = subtotal + SHIPPING_COST;
+  const SHIPPING_COST = parseFloat(cartTotals.subtotal) > 0 && parseFloat(cartTotals.subtotal) < FREE_SHIPPING_THRESHOLD ? 50 : 0; // ₹50 shipping fee
+  const grandTotal = parseFloat(cartTotals.subtotal) + parseFloat(cartTotals.tax) + SHIPPING_COST;
 
   const breadcrumbItems = [
     { label: 'Home', path: '/' },
@@ -152,8 +198,36 @@ const Cart = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between border-b border-gray-200 pb-4">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">₹{formatPrice(subtotal)}</span>
+                    <span className="font-medium">₹{formatPrice(cartTotals.subtotal)}</span>
                   </div>
+                  
+                  {parseFloat(cartTotals.tax) > 0 && (
+                    <div className="flex justify-between border-b border-gray-200 pb-4">
+                      <span className="text-gray-600 flex items-center">
+                        Tax
+                        <button
+                          onClick={() => setShowTaxBreakdown(!showTaxBreakdown)}
+                          className="ml-1 text-xs text-blue-500 underline"
+                        >
+                          {showTaxBreakdown ? 'Hide details' : 'Show details'}
+                        </button>
+                      </span>
+                      <span className="font-medium">₹{formatPrice(cartTotals.tax)}</span>
+                    </div>
+                  )}
+                  
+                  {showTaxBreakdown && taxBreakdown.length > 0 && (
+                    <div className="bg-gray-50 p-3 rounded-md text-sm border-b border-gray-200 pb-4">
+                      <h3 className="font-medium mb-2">Tax Breakdown</h3>
+                      {taxBreakdown.map((taxGroup, index) => (
+                        <div key={index} className="flex justify-between mb-1">
+                          <span>GST {taxGroup.rate}%</span>
+                          <span>₹{formatPrice(taxGroup.tax_amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between border-b border-gray-200 pb-4">
                     <span className="text-gray-600">Shipping</span>
                     {SHIPPING_COST > 0 ? (
@@ -162,22 +236,24 @@ const Cart = () => {
                       <span className="font-medium text-green-600">Free</span>
                     )}
                   </div>
-                  {subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD && (
+                  
+                  {parseFloat(cartTotals.subtotal) > 0 && parseFloat(cartTotals.subtotal) < FREE_SHIPPING_THRESHOLD && (
                     <div className="border-b border-gray-200 pb-4">
                       <p className="text-sm text-gray-600">
-                        Add <span className="font-medium">₹{formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)}</span> more to qualify for free shipping
+                        Add <span className="font-medium">₹{formatPrice(FREE_SHIPPING_THRESHOLD - parseFloat(cartTotals.subtotal))}</span> more to qualify for free shipping
                       </p>
                       <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
                         <div 
                           className="bg-[#9bc948] h-2.5 rounded-full" 
-                          style={{ width: `${(subtotal / FREE_SHIPPING_THRESHOLD) * 100}%` }}
+                          style={{ width: `${(parseFloat(cartTotals.subtotal) / FREE_SHIPPING_THRESHOLD) * 100}%` }}
                         ></div>
                       </div>
                     </div>
                   )}
+                  
                   <div className="flex justify-between pt-2">
                     <span className="text-lg font-bold text-gray-800">Total</span>
-                    <span className="text-lg font-bold text-[#9bc948]">₹{formatPrice(total)}</span>
+                    <span className="text-lg font-bold text-[#9bc948]">₹{formatPrice(grandTotal)}</span>
                   </div>
                 </div>
                 

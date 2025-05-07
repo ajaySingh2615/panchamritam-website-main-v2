@@ -64,6 +64,7 @@ export const API_ENDPOINTS = {
   BLOGS: createApiUrl('/blogs'),
   CONTACT: createApiUrl('/contact'),
   REVIEWS: createApiUrl('/reviews'),
+  TAX: `${BASE_API_URL}/tax`,
 };
 
 export default {

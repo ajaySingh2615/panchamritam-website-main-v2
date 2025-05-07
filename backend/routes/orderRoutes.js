@@ -16,10 +16,13 @@ router.get('/:id', orderController.getOrderById);
 router.get('/', restrictTo('admin'), orderController.getAllOrders);
 router.patch('/:id/status', restrictTo('admin'), orderController.updateOrderStatus);
 
-// Create a new order (with inventory validation)
-router.post('/', cartController.validateCartInventory, orderController.createOrder);
+// Create a new order (with tax calculation and inventory validation)
+router.post('/', cartController.validateCartInventory, orderController.createOrderWithTax);
 
 // Cancel order
 router.patch('/:orderId/cancel', orderController.cancelOrder);
+
+// Get invoice for order
+router.get('/:id/invoice', orderController.generateInvoice);
 
 module.exports = router; 

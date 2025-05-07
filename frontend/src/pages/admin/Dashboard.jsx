@@ -100,6 +100,43 @@ const Dashboard = () => {
         />
       </div>
 
+      {/* Quick Access Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <QuickAccessCard 
+          title="Tax Management" 
+          description="Manage GST rates, HSN codes and view tax reports"
+          icon={
+            <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          } 
+          linkTo="/admin/tax-management"
+          color="bg-purple-100"
+        />
+        <QuickAccessCard 
+          title="Add New Product" 
+          description="Create and publish a new product listing"
+          icon={
+            <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          } 
+          linkTo="/admin/products/create"
+          color="bg-blue-100"
+        />
+        <QuickAccessCard 
+          title="User Management" 
+          description="Manage customers and admin users"
+          icon={
+            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          } 
+          linkTo="/admin/users"
+          color="bg-green-100"
+        />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Orders */}
         <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -241,6 +278,23 @@ const StatCard = ({ title, value, icon, linkTo, color = 'bg-gray-100' }) => {
             <p className="text-2xl font-semibold text-gray-900">{value}</p>
           </div>
         </div>
+      </div>
+    </Link>
+  );
+};
+
+// Quick access card component for dashboard
+const QuickAccessCard = ({ title, description, icon, linkTo, color = 'bg-gray-100' }) => {
+  return (
+    <Link to={linkTo} className="block">
+      <div className={`${color} rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200`}>
+        <div className="flex items-center mb-3">
+          <div className="flex-shrink-0 mr-3">
+            {icon}
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        </div>
+        <p className="text-sm text-gray-600">{description}</p>
       </div>
     </Link>
   );

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { API_ENDPOINTS } from '../config/api';
 import { useAuth } from './AuthContext';
 import axios from 'axios';
+import TaxService from '../services/taxService';
 
 const CartContext = createContext();
 
@@ -458,11 +459,26 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Get cart total price
+  // Get cart total price with tax
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => {
-      return total + (parseFloat(item.price) * item.quantity);
-    }, 0);
+    // Initialize totals
+    let subtotal = 0;
+    let tax = 0;
+    
+    // Calculate based on cart items
+    cartItems.forEach(item => {
+      const itemSubtotal = parseFloat(item.price) * item.quantity;
+      const itemTax = itemSubtotal * (item.tax_rate || 0) / 100;
+      
+      subtotal += itemSubtotal;
+      tax += itemTax;
+    });
+    
+    return {
+      subtotal: subtotal.toFixed(2),
+      tax: tax.toFixed(2),
+      total: (subtotal + tax).toFixed(2)
+    };
   };
 
   // Get total number of items in cart
@@ -470,6 +486,28 @@ export const CartProvider = ({ children }) => {
     return cartItems.reduce((count, item) => {
       return count + item.quantity;
     }, 0);
+  };
+
+  // Fetch tax information for a product
+  const fetchProductTaxInfo = async (productId) => {
+    try {
+      const result = await TaxService.getProductTaxInfo(productId);
+      return result.data.tax_info;
+    } catch (error) {
+      console.error("Error fetching product tax info:", error);
+      return null;
+    }
+  };
+
+  // Calculate price with tax
+  const calculatePriceWithTax = async (productId, quantity = 1) => {
+    try {
+      const result = await TaxService.calculatePriceWithTax(productId, quantity);
+      return result.data.calculation;
+    } catch (error) {
+      console.error("Error calculating price with tax:", error);
+      return null;
+    }
   };
 
   const value = {
@@ -482,7 +520,9 @@ export const CartProvider = ({ children }) => {
     removeFromCart,
     clearCart,
     getCartTotal,
-    getCartCount
+    getCartCount,
+    fetchProductTaxInfo,
+    calculatePriceWithTax
   };
 
   return (

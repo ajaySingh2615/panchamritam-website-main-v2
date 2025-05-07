@@ -26,6 +26,7 @@ const wishlistRoutes = require('./routes/wishlistRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const taxRoutes = require('./routes/taxRoutes');
 
 // Initialize app
 const app = express();
@@ -67,6 +68,7 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/tax', taxRoutes);
 
 // 404 route not found handler
 app.all('*', (req, res, next) => {

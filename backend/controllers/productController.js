@@ -692,4 +692,121 @@ exports.saveVideoUrl = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+// Get tax information for a product
+exports.getProductTaxInfo = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    const taxInfo = await Product.getTaxInfo(id);
+    
+    if (!taxInfo) {
+      return next(new AppError('Product not found', 404));
+    }
+    
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tax_info: taxInfo
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update product tax attributes
+exports.updateProductTaxAttributes = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { hsn_code_id, is_branded, is_packaged, custom_gst_rate_id } = req.body;
+    
+    // Validate input
+    if (hsn_code_id === undefined && is_branded === undefined && 
+        is_packaged === undefined && custom_gst_rate_id === undefined) {
+      return next(new AppError('No tax attributes provided for update', 400));
+    }
+    
+    // Check if product exists
+    const product = await Product.findById(id);
+    if (!product) {
+      return next(new AppError('Product not found', 404));
+    }
+    
+    const taxData = {
+      hsn_code_id: hsn_code_id,
+      is_branded: is_branded,
+      is_packaged: is_packaged,
+      custom_gst_rate_id: custom_gst_rate_id
+    };
+    
+    const updatedTaxInfo = await Product.updateTaxAttributes(id, taxData);
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Product tax attributes updated successfully',
+      data: {
+        tax_info: updatedTaxInfo
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Bulk update product tax attributes
+exports.bulkUpdateProductTaxAttributes = async (req, res, next) => {
+  try {
+    const { product_ids, tax_attributes } = req.body;
+    
+    // Validate input
+    if (!Array.isArray(product_ids) || product_ids.length === 0) {
+      return next(new AppError('Product IDs array is required', 400));
+    }
+    
+    if (!tax_attributes || Object.keys(tax_attributes).length === 0) {
+      return next(new AppError('Tax attributes are required', 400));
+    }
+    
+    const result = await Product.bulkUpdateTaxAttributes(product_ids, tax_attributes);
+    
+    res.status(200).json({
+      status: 'success',
+      message: `Tax attributes updated for ${result.updated} out of ${result.total} products`,
+      data: {
+        result
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Calculate product price with tax
+exports.calculatePriceWithTax = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { quantity = 1 } = req.query;
+    
+    // Validate input
+    const parsedQuantity = parseInt(quantity);
+    if (isNaN(parsedQuantity) || parsedQuantity < 1) {
+      return next(new AppError('Quantity must be a positive number', 400));
+    }
+    
+    const calculation = await Product.calculatePriceWithTax(id, parsedQuantity);
+    
+    res.status(200).json({
+      status: 'success',
+      data: {
+        calculation
+      }
+    });
+  } catch (error) {
+    if (error.message === 'Product not found') {
+      return next(new AppError('Product not found', 404));
+    }
+    next(error);
+  }
 }; 

@@ -164,8 +164,8 @@ exports.updateOrderStatus = async (req, res, next) => {
   }
 };
 
-// Create a new order
-exports.createOrder = async (req, res, next) => {
+// Create a new order with tax calculations
+exports.createOrderWithTax = async (req, res, next) => {
   try {
     const userId = req.user.user_id;
     const { address_id, payment_method = 'Cash on Delivery' } = req.body;
@@ -181,20 +181,20 @@ exports.createOrder = async (req, res, next) => {
       return next(new AppError('Cart is empty', 400));
     }
     
-    // Create order
+    // Create order with tax calculations
     const orderData = {
       user_id: userId,
       address_id,
-      total_price: parseFloat(cart.subtotal),
       status: 'pending',
-      payment_method
+      payment_method,
+      payment_status: 'pending'
     };
     
-    // Create order and order items in a transaction
-    const order = await Order.createOrder(orderData, cart.items);
-    
-    // Reduce inventory for each ordered item
+    // Create order
     try {
+      const order = await Order.createOrderWithTax(orderData, cart.items);
+      
+      // Reduce inventory for each ordered item
       for (const item of cart.items) {
         await Product.reduceInventory(item.product_id, item.quantity);
       }
@@ -204,24 +204,51 @@ exports.createOrder = async (req, res, next) => {
       
       res.status(201).json({
         status: 'success',
-        message: 'Order created successfully',
+        message: 'Order created successfully with tax calculations',
         data: {
           order
         }
       });
-    } catch (inventoryError) {
-      // If inventory reduction fails, we should handle this carefully
-      // In a production system, you might want to implement a compensation transaction
-      console.error('Error reducing inventory:', inventoryError);
-      
-      // For simplicity, we'll cancel the order
-      await Order.updateOrderStatus(order.order_id, 'cancelled');
+    } catch (error) {
+      console.error('Error creating order with tax:', error);
       
       return next(new AppError(
-        'Failed to process order due to inventory changes. Please try again.',
+        'Failed to process order. Please try again.',
         500
       ));
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Generate tax invoice for an order
+exports.generateInvoice = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.user_id;
+    
+    // Get the order
+    const order = await Order.findById(id);
+    
+    if (!order) {
+      return next(new AppError('Order not found', 404));
+    }
+    
+    // Check if user has permission to view this order
+    if (order.user_id !== userId && req.user.role_name !== 'admin') {
+      return next(new AppError('You do not have permission to access this invoice', 403));
+    }
+    
+    // Generate tax invoice data
+    const invoice = await Order.generateTaxInvoice(id);
+    
+    res.status(200).json({
+      status: 'success',
+      data: {
+        invoice
+      }
+    });
   } catch (error) {
     next(error);
   }

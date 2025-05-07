@@ -8,7 +8,7 @@ import './Checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, getCartTotal } = useCart();
   const { user, token } = useAuth();
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -16,6 +16,38 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [cartTotals, setCartTotals] = useState({ subtotal: '0.00', tax: '0.00', total: '0.00' });
+  const [showTaxBreakdown, setShowTaxBreakdown] = useState(false);
+  const [taxBreakdown, setTaxBreakdown] = useState([]);
+
+  useEffect(() => {
+    // Update cart totals from CartContext
+    setCartTotals(getCartTotal());
+
+    // Group tax by rates for breakdown
+    const taxGroups = {};
+    
+    cartItems.forEach(item => {
+      const taxRate = item.tax_rate || 0;
+      const itemSubtotal = parseFloat(item.price) * item.quantity;
+      const itemTax = itemSubtotal * taxRate / 100;
+      
+      if (!taxGroups[taxRate]) {
+        taxGroups[taxRate] = {
+          rate: taxRate,
+          taxable_amount: 0,
+          tax_amount: 0,
+          items: []
+        };
+      }
+      
+      taxGroups[taxRate].taxable_amount += itemSubtotal;
+      taxGroups[taxRate].tax_amount += itemTax;
+      taxGroups[taxRate].items.push(item);
+    });
+    
+    setTaxBreakdown(Object.values(taxGroups));
+  }, [cartItems, getCartTotal]);
 
   useEffect(() => {
     const fetchAddresses = async () => {
@@ -122,12 +154,14 @@ const Checkout = () => {
     );
   }
 
-  const subtotal = cartItems.reduce((total, item) => {
-    return total + (item.price * item.quantity);
-  }, 0);
+  // Calculate shipping cost
+  const FREE_SHIPPING_THRESHOLD = 500;
+  const shipping = parseFloat(cartTotals.subtotal) > 0 && parseFloat(cartTotals.subtotal) < FREE_SHIPPING_THRESHOLD ? 50 : 0;
+  const grandTotal = parseFloat(cartTotals.subtotal) + parseFloat(cartTotals.tax) + shipping;
 
-  const shipping = subtotal > 0 ? 10 : 0;
-  const total = subtotal + shipping;
+  const formatPrice = (price) => {
+    return parseFloat(price).toFixed(2);
+  };
 
   const breadcrumbItems = [
     { label: 'Home', path: '/' },
@@ -208,25 +242,61 @@ const Checkout = () => {
               <div className="summary-items">
                 {cartItems.map((item) => (
                   <div key={item.product_id} className="summary-item">
-                    <span className="item-name">{item.name} x {item.quantity}</span>
-                    <span className="item-price">${(item.price * item.quantity).toFixed(2)}</span>
+                    <div className="item-info">
+                      <span className="item-name">{item.name}</span>
+                      <span className="item-quantity">x {item.quantity}</span>
+                    </div>
+                    <span className="item-price">₹{formatPrice(item.price * item.quantity)}</span>
                   </div>
                 ))}
               </div>
               <div className="summary-totals">
                 <div className="summary-row">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>₹{formatPrice(cartTotals.subtotal)}</span>
                 </div>
+                
+                {parseFloat(cartTotals.tax) > 0 && (
+                  <div className="summary-row">
+                    <span className="flex items-center">
+                      Tax
+                      <button
+                        onClick={() => setShowTaxBreakdown(!showTaxBreakdown)}
+                        className="tax-details-toggle"
+                      >
+                        {showTaxBreakdown ? '(hide details)' : '(show details)'}
+                      </button>
+                    </span>
+                    <span>₹{formatPrice(cartTotals.tax)}</span>
+                  </div>
+                )}
+                
+                {showTaxBreakdown && taxBreakdown.length > 0 && (
+                  <div className="tax-breakdown">
+                    {taxBreakdown.map((taxGroup, index) => (
+                      <div key={index} className="tax-breakdown-row">
+                        <span>GST {taxGroup.rate}%</span>
+                        <span>₹{formatPrice(taxGroup.tax_amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
                 <div className="summary-row">
                   <span>Shipping</span>
-                  <span>${shipping.toFixed(2)}</span>
+                  {shipping > 0 ? (
+                    <span>₹{formatPrice(shipping)}</span>
+                  ) : (
+                    <span className="free-shipping">Free</span>
+                  )}
                 </div>
+                
                 <div className="summary-row total">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>₹{formatPrice(grandTotal)}</span>
                 </div>
               </div>
+              
               <button 
                 className="place-order-button"
                 onClick={handlePlaceOrder}
@@ -234,6 +304,12 @@ const Checkout = () => {
               >
                 Place Order
               </button>
+              
+              <div className="checkout-note">
+                <p>
+                  By placing your order, you agree to our <a href="/terms">Terms & Conditions</a> and acknowledge our <a href="/privacy">Privacy Policy</a>.
+                </p>
+              </div>
             </div>
           </div>
         </div>

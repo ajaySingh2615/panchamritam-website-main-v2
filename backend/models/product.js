@@ -463,6 +463,182 @@ class Product {
       throw error;
     }
   }
+
+  // Get tax information for a product
+  static async getTaxInfo(productId) {
+    try {
+      const GST = require('./gst');
+      const HSN = require('./hsn');
+
+      // Get product with all tax-related fields
+      const [rows] = await pool.execute(
+        `SELECT p.*, c.name as category_name, c.default_hsn_id,
+                h.code as hsn_code, h.description as hsn_description
+         FROM Products p 
+         LEFT JOIN Categories c ON p.category_id = c.category_id
+         LEFT JOIN HSN_Codes h ON p.hsn_code_id = h.hsn_id
+         WHERE p.product_id = ?`,
+        [productId]
+      );
+      
+      if (rows.length === 0) {
+        return null;
+      }
+      
+      const product = rows[0];
+      
+      // Get applicable GST rate
+      const gstRate = await GST.determineRateForProduct(product);
+      
+      return {
+        product_id: product.product_id,
+        name: product.name,
+        price: parseFloat(product.price),
+        hsn_code: product.hsn_code || null,
+        hsn_description: product.hsn_description || null,
+        is_branded: !!product.is_branded,
+        is_packaged: !!product.is_packaged,
+        gst_rate: gstRate ? {
+          rate_id: gstRate.rate_id,
+          rate_name: gstRate.rate_name,
+          percentage: parseFloat(gstRate.percentage),
+          description: gstRate.description
+        } : null,
+        // Calculate tax amount
+        tax_amount: product.price * (gstRate ? parseFloat(gstRate.percentage) / 100 : 0),
+        // Calculate total price (including tax)
+        total_price: product.price * (1 + (gstRate ? parseFloat(gstRate.percentage) / 100 : 0))
+      };
+    } catch (error) {
+      console.error('Error in Product.getTaxInfo:', error);
+      throw error;
+    }
+  }
+  
+  // Update product tax attributes
+  static async updateTaxAttributes(productId, taxData) {
+    try {
+      const { 
+        hsn_code_id, 
+        is_branded, 
+        is_packaged, 
+        custom_gst_rate_id 
+      } = taxData;
+      
+      const [result] = await pool.execute(
+        `UPDATE Products 
+         SET hsn_code_id = ?, 
+             is_branded = ?, 
+             is_packaged = ?, 
+             custom_gst_rate_id = ?
+         WHERE product_id = ?`,
+        [
+          hsn_code_id || null, 
+          is_branded ? 1 : 0, 
+          is_packaged ? 1 : 0, 
+          custom_gst_rate_id || null,
+          productId
+        ]
+      );
+      
+      if (result.affectedRows === 0) {
+        return null;
+      }
+      
+      // Return updated tax info
+      return await this.getTaxInfo(productId);
+    } catch (error) {
+      console.error('Error in Product.updateTaxAttributes:', error);
+      throw error;
+    }
+  }
+  
+  // Bulk update tax attributes for multiple products
+  static async bulkUpdateTaxAttributes(productIds, taxData) {
+    try {
+      const { 
+        hsn_code_id, 
+        is_branded, 
+        is_packaged, 
+        custom_gst_rate_id 
+      } = taxData;
+      
+      // Use a transaction for bulk update
+      const connection = await pool.getConnection();
+      await connection.beginTransaction();
+      
+      try {
+        let successCount = 0;
+        
+        for (const productId of productIds) {
+          const [result] = await connection.execute(
+            `UPDATE Products 
+             SET hsn_code_id = ?, 
+                 is_branded = ?, 
+                 is_packaged = ?, 
+                 custom_gst_rate_id = ?
+             WHERE product_id = ?`,
+            [
+              hsn_code_id || null, 
+              is_branded ? 1 : 0, 
+              is_packaged ? 1 : 0, 
+              custom_gst_rate_id || null,
+              productId
+            ]
+          );
+          
+          if (result.affectedRows > 0) {
+            successCount++;
+          }
+        }
+        
+        await connection.commit();
+        
+        return {
+          success: true,
+          total: productIds.length,
+          updated: successCount
+        };
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error('Error in Product.bulkUpdateTaxAttributes:', error);
+      throw error;
+    }
+  }
+  
+  // Calculate price with tax
+  static async calculatePriceWithTax(productId, quantity = 1) {
+    try {
+      const taxInfo = await this.getTaxInfo(productId);
+      
+      if (!taxInfo) {
+        throw new Error('Product not found');
+      }
+      
+      const subtotal = taxInfo.price * quantity;
+      const taxAmount = subtotal * (taxInfo.gst_rate ? taxInfo.gst_rate.percentage / 100 : 0);
+      const total = subtotal + taxAmount;
+      
+      return {
+        product_id: productId,
+        price_per_unit: taxInfo.price,
+        quantity,
+        subtotal,
+        gst_rate: taxInfo.gst_rate ? taxInfo.gst_rate.percentage : 0,
+        tax_amount: taxAmount,
+        total,
+        hsn_code: taxInfo.hsn_code
+      };
+    } catch (error) {
+      console.error('Error in Product.calculatePriceWithTax:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = Product; 

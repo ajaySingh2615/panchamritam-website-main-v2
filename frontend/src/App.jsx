@@ -39,6 +39,7 @@ import ProductsList from './pages/admin/ProductsList';
 import ProductCreate from './pages/admin/ProductCreate';
 import ProductDetail from './pages/admin/ProductDetail';
 import ProductEdit from './pages/admin/ProductEdit';
+import TaxManagement from './pages/admin/TaxManagement';
 
 import './App.css';
 
@@ -95,6 +96,7 @@ const App = () => {
               <Route path="products/create" element={<ProductCreate />} />
               <Route path="products/:productId" element={<ProductDetail />} />
               <Route path="products/:productId/edit" element={<ProductEdit />} />
+              <Route path="tax-management" element={<TaxManagement />} />
             </Route>
             
             {/* Public Routes with Main Layout */}
