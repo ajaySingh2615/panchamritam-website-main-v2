@@ -875,7 +875,7 @@ const ProductDetails = () => {
               </span>
               {product.stock_status !== 'Out of Stock' && (
                 <span className="ml-2 text-gray-500">
-                  ({product.quantity - cartQuantity} available)
+                  ({Math.max(0, product.quantity - cartQuantity)} available)
                 </span>
               )}
             </div>

@@ -374,6 +374,95 @@ class Product {
       throw error;
     }
   }
+
+  // Check if product has enough inventory for requested quantity
+  static async checkInventory(productId, requestedQuantity) {
+    try {
+      const [products] = await pool.execute(
+        'SELECT product_id, name, quantity FROM Products WHERE product_id = ?',
+        [productId]
+      );
+      
+      if (products.length === 0) {
+        return { 
+          exists: false,
+          message: 'Product not found'
+        };
+      }
+      
+      const product = products[0];
+      const available = parseInt(product.quantity);
+      const isAvailable = available >= requestedQuantity;
+      
+      return {
+        exists: true,
+        product_id: product.product_id,
+        name: product.name,
+        available,
+        requested: requestedQuantity,
+        sufficient: isAvailable,
+        message: isAvailable 
+          ? 'Sufficient inventory' 
+          : `Insufficient inventory. Only ${available} items available.`
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  // Reduce product inventory after order placement
+  static async reduceInventory(productId, quantity) {
+    try {
+      // First check if there's enough inventory
+      const inventoryCheck = await this.checkInventory(productId, quantity);
+      
+      if (!inventoryCheck.sufficient) {
+        throw new Error(inventoryCheck.message);
+      }
+      
+      // Update inventory
+      const [result] = await pool.execute(
+        'UPDATE Products SET quantity = quantity - ? WHERE product_id = ?',
+        [quantity, productId]
+      );
+      
+      return {
+        success: result.affectedRows > 0,
+        remaining: inventoryCheck.available - quantity
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update product quantity directly (for order cancellations)
+  static async updateProductQuantity(productId, quantityToAdd) {
+    try {
+      const [result] = await pool.execute(
+        'UPDATE Products SET quantity = quantity + ? WHERE product_id = ?',
+        [quantityToAdd, productId]
+      );
+      
+      if (result.affectedRows === 0) {
+        throw new Error('Product not found');
+      }
+      
+      // Get the updated product to return the new quantity
+      const [products] = await pool.execute(
+        'SELECT quantity FROM Products WHERE product_id = ?',
+        [productId]
+      );
+      
+      return {
+        success: true,
+        product_id: productId,
+        quantity: products[0]?.quantity || 0
+      };
+    } catch (error) {
+      console.error('Error in Product.updateProductQuantity:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = Product; 

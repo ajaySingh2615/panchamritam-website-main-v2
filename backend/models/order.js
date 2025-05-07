@@ -276,6 +276,24 @@ class Order {
   static async cancelOrder(orderId) {
     return this.updateStatus(orderId, 'cancelled');
   }
+  
+  // Get items for a specific order
+  static async getOrderItems(orderId) {
+    try {
+      const [items] = await pool.execute(
+        `SELECT oi.*, p.name, p.price, p.image_url
+         FROM Order_Items oi
+         JOIN Products p ON oi.product_id = p.product_id
+         WHERE oi.order_id = ?`,
+        [orderId]
+      );
+      
+      return items;
+    } catch (error) {
+      console.error('Error in Order.getOrderItems:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = Order; 

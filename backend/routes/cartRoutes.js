@@ -21,4 +21,12 @@ router.delete('/items/:cartItemId', cartController.removeFromCart);
 // Clear cart
 router.delete('/', cartController.clearCart);
 
+// Validate cart inventory before checkout
+router.post('/validate', cartController.validateCartInventory, (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Inventory validation passed'
+  });
+});
+
 module.exports = router; 

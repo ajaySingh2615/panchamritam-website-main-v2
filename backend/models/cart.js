@@ -172,6 +172,24 @@ class Cart {
     }
   }
   
+  // Find a specific cart item by ID
+  static async findCartItemById(cartItemId) {
+    try {
+      const [items] = await pool.execute(
+        `SELECT ci.*, p.name, p.price, p.quantity as product_quantity, p.image_url, c.name as category_name
+         FROM Cart_Items ci
+         JOIN Products p ON ci.product_id = p.product_id
+         LEFT JOIN Categories c ON p.category_id = c.category_id
+         WHERE ci.cart_item_id = ?`,
+        [cartItemId]
+      );
+      
+      return items.length > 0 ? items[0] : null;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
   // Clear cart
   static async clearCart(userId) {
     try {

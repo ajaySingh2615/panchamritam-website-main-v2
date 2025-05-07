@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
+const cartController = require('../controllers/cartController');
 const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
 // All order routes require authentication
@@ -14,5 +15,11 @@ router.get('/:id', orderController.getOrderById);
 // Admin-only routes
 router.get('/', restrictTo('admin'), orderController.getAllOrders);
 router.patch('/:id/status', restrictTo('admin'), orderController.updateOrderStatus);
+
+// Create a new order (with inventory validation)
+router.post('/', cartController.validateCartInventory, orderController.createOrder);
+
+// Cancel order
+router.patch('/:orderId/cancel', orderController.cancelOrder);
 
 module.exports = router; 

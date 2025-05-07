@@ -1,5 +1,7 @@
 const Order = require('../models/order');
 const Address = require('../models/address');
+const Cart = require('../models/cart');
+const Product = require('../models/product');
 const { AppError } = require('../middlewares/errorHandler');
 
 // Create new order from cart (checkout)
@@ -156,6 +158,130 @@ exports.updateOrderStatus = async (req, res, next) => {
         return next(new AppError(error.message, 400));
       }
       throw error;
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Create a new order
+exports.createOrder = async (req, res, next) => {
+  try {
+    const userId = req.user.user_id;
+    const { address_id, payment_method = 'Cash on Delivery' } = req.body;
+    
+    if (!address_id) {
+      return next(new AppError('Shipping address is required', 400));
+    }
+    
+    // Get user's cart
+    const cart = await Cart.findByUserId(userId);
+    
+    if (cart.items.length === 0) {
+      return next(new AppError('Cart is empty', 400));
+    }
+    
+    // Create order
+    const orderData = {
+      user_id: userId,
+      address_id,
+      total_price: parseFloat(cart.subtotal),
+      status: 'pending',
+      payment_method
+    };
+    
+    // Create order and order items in a transaction
+    const order = await Order.createOrder(orderData, cart.items);
+    
+    // Reduce inventory for each ordered item
+    try {
+      for (const item of cart.items) {
+        await Product.reduceInventory(item.product_id, item.quantity);
+      }
+      
+      // Clear the cart after successful order
+      await Cart.clearCart(userId);
+      
+      res.status(201).json({
+        status: 'success',
+        message: 'Order created successfully',
+        data: {
+          order
+        }
+      });
+    } catch (inventoryError) {
+      // If inventory reduction fails, we should handle this carefully
+      // In a production system, you might want to implement a compensation transaction
+      console.error('Error reducing inventory:', inventoryError);
+      
+      // For simplicity, we'll cancel the order
+      await Order.updateOrderStatus(order.order_id, 'cancelled');
+      
+      return next(new AppError(
+        'Failed to process order due to inventory changes. Please try again.',
+        500
+      ));
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Cancel order
+exports.cancelOrder = async (req, res, next) => {
+  try {
+    const userId = req.user.user_id;
+    const { orderId } = req.params;
+    
+    // Get the order
+    const order = await Order.findById(orderId);
+    
+    if (!order) {
+      return next(new AppError('Order not found', 404));
+    }
+    
+    // Check if order belongs to user or user is admin
+    if (order.user_id !== userId && req.user.role_name !== 'admin') {
+      return next(new AppError('You do not have permission to cancel this order', 403));
+    }
+    
+    // Check if order can be canceled (only pending or processing orders)
+    if (order.status !== 'pending' && order.status !== 'processing') {
+      return next(new AppError(`Order cannot be cancelled. Current status: ${order.status}`, 400));
+    }
+    
+    // Update order status to cancelled
+    const result = await Order.updateStatus(orderId, 'cancelled');
+    
+    // Return inventory items back to stock
+    try {
+      // Get order items
+      const orderItems = await Order.getOrderItems(orderId);
+      
+      // Restore inventory for each item
+      for (const item of orderItems) {
+        // Update product quantity by adding back the ordered quantity
+        await Product.updateProductQuantity(item.product_id, item.quantity);
+      }
+      
+      res.status(200).json({
+        status: 'success',
+        message: 'Order cancelled successfully',
+        data: {
+          order: result
+        }
+      });
+    } catch (error) {
+      console.error('Error restoring inventory:', error);
+      
+      // Even if inventory restoration fails, the order is still cancelled
+      res.status(200).json({
+        status: 'success',
+        message: 'Order cancelled but inventory restoration failed. Please contact support.',
+        data: {
+          order: result
+        }
+      });
     }
   } catch (error) {
     next(error);
