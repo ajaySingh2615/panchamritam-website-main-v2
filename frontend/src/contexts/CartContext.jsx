@@ -94,6 +94,17 @@ export const CartProvider = ({ children }) => {
         };
       }
       
+      // Fetch tax information for this product
+      let taxInfo = null;
+      try {
+        const taxResult = await calculatePriceWithTax(productId, 1);
+        taxInfo = taxResult;
+        console.log('Tax information fetched:', taxInfo);
+      } catch (taxError) {
+        console.error('Failed to fetch tax information:', taxError);
+        // Continue anyway, but tax might not be applied correctly
+      }
+      
       // Determine the quantity to add (use cartQuantity first, then quantity if provided, default to 1)
       const quantityToAdd = product.cartQuantity || (typeof product.quantity === 'number' && product.quantity > 0 && product.quantity < 10 ? product.quantity : 1);
       
@@ -117,7 +128,20 @@ export const CartProvider = ({ children }) => {
             });
             
             if (cartResponse.data.status === 'success') {
-              setCartItems(cartResponse.data.data.cart.items || []);
+              // Add tax rate to each cart item if not present
+              const updatedItems = (cartResponse.data.data.cart.items || []).map(item => {
+                // If this is the item we just added and we have tax info, add it
+                if (parseInt(item.product_id) === productId && taxInfo) {
+                  return {
+                    ...item,
+                    tax_rate: taxInfo.gst_rate || 0,
+                    hsn_code: taxInfo.hsn_code
+                  };
+                }
+                return item;
+              });
+              
+              setCartItems(updatedItems);
               setLastSync(new Date().toISOString());
             }
             
@@ -185,17 +209,24 @@ export const CartProvider = ({ children }) => {
           if (existingItem) {
             return prevItems.map(item =>
               (parseInt(item.product_id) === productId || (item.id && parseInt(item.id) === productId))
-                ? { ...item, quantity: item.quantity + quantityToAdd }
+                ? { 
+                    ...item, 
+                    quantity: item.quantity + quantityToAdd,
+                    tax_rate: taxInfo ? taxInfo.gst_rate || 0 : (item.tax_rate || 0),
+                    hsn_code: taxInfo ? taxInfo.hsn_code : (item.hsn_code || null)
+                  }
                 : item
             );
           }
           
-          // Create new item with appropriate quantity
+          // Create new item with appropriate quantity and tax info
           const newItem = { 
             ...product, 
             product_id: productId,
             id: productId, // Add id field for consistency
-            quantity: quantityToAdd
+            quantity: quantityToAdd,
+            tax_rate: taxInfo ? taxInfo.gst_rate || 0 : 0,
+            hsn_code: taxInfo ? taxInfo.hsn_code : null
           };
           
           return [...prevItems, newItem];
@@ -271,7 +302,28 @@ export const CartProvider = ({ children }) => {
               });
               
               if (cartResponse.data.status === 'success') {
-                setCartItems(cartResponse.data.data.cart.items || []);
+                // Preserve tax information when updating items
+                const existingItems = [...cartItems];
+                const newItems = cartResponse.data.data.cart.items || [];
+                
+                // Merge the items, keeping tax information from existing items
+                const updatedItems = newItems.map(newItem => {
+                  const existingItem = existingItems.find(
+                    item => parseInt(item.product_id) === parseInt(newItem.product_id)
+                  );
+                  
+                  if (existingItem && existingItem.tax_rate) {
+                    return {
+                      ...newItem,
+                      tax_rate: existingItem.tax_rate,
+                      hsn_code: existingItem.hsn_code
+                    };
+                  }
+                  
+                  return newItem;
+                });
+                
+                setCartItems(updatedItems);
                 setLastSync(new Date().toISOString());
               }
             }

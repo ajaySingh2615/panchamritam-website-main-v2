@@ -38,30 +38,41 @@ const Cart = () => {
   // Fetch detailed tax breakdown for items in cart
   const fetchTaxBreakdown = async () => {
     try {
-      // This would typically be an API call to get tax breakdown by HSN codes
-      // For now, we'll just simulate it by grouping cart items by tax rate
+      // Create tax groups based on tax rates
       const taxGroups = {};
       
+      console.log('Generating tax breakdown for cart items:', cartItems);
+      
       cartItems.forEach(item => {
+        // Extract tax rate, default to 0 if not set
         const taxRate = item.tax_rate || 0;
+        const hsnCode = item.hsn_code || 'Unknown';
         const itemSubtotal = parseFloat(item.price) * item.quantity;
         const itemTax = itemSubtotal * taxRate / 100;
         
-        if (!taxGroups[taxRate]) {
-          taxGroups[taxRate] = {
+        // Create a key that combines rate and HSN code for better grouping
+        const groupKey = `${taxRate}-${hsnCode}`;
+        
+        if (!taxGroups[groupKey]) {
+          taxGroups[groupKey] = {
             rate: taxRate,
+            hsn_code: hsnCode,
             taxable_amount: 0,
             tax_amount: 0,
             items: []
           };
         }
         
-        taxGroups[taxRate].taxable_amount += itemSubtotal;
-        taxGroups[taxRate].tax_amount += itemTax;
-        taxGroups[taxRate].items.push(item);
+        taxGroups[groupKey].taxable_amount += itemSubtotal;
+        taxGroups[groupKey].tax_amount += itemTax;
+        taxGroups[groupKey].items.push(item);
       });
       
-      setTaxBreakdown(Object.values(taxGroups));
+      // Convert tax groups to an array and sort by tax rate
+      const breakdown = Object.values(taxGroups).sort((a, b) => a.rate - b.rate);
+      console.log('Tax breakdown generated:', breakdown);
+      
+      setTaxBreakdown(breakdown);
     } catch (error) {
       console.error('Error fetching tax breakdown:', error);
     }
@@ -220,11 +231,25 @@ const Cart = () => {
                     <div className="bg-gray-50 p-3 rounded-md text-sm border-b border-gray-200 pb-4">
                       <h3 className="font-medium mb-2">Tax Breakdown</h3>
                       {taxBreakdown.map((taxGroup, index) => (
-                        <div key={index} className="flex justify-between mb-1">
-                          <span>GST {taxGroup.rate}%</span>
-                          <span>₹{formatPrice(taxGroup.tax_amount)}</span>
+                        <div key={index} className="mb-2">
+                          <div className="flex justify-between font-medium">
+                            <span>GST {taxGroup.rate}% {taxGroup.hsn_code && `(HSN: ${taxGroup.hsn_code})`}</span>
+                            <span>₹{formatPrice(taxGroup.tax_amount)}</span>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Taxable amount: ₹{formatPrice(taxGroup.taxable_amount)}
+                          </div>
+                          {taxGroup.items.length > 1 && (
+                            <div className="text-xs text-gray-500">
+                              Applied to {taxGroup.items.length} products
+                            </div>
+                          )}
                         </div>
                       ))}
+                      
+                      {taxBreakdown.length === 0 && (
+                        <div className="text-gray-500">No tax information available</div>
+                      )}
                     </div>
                   )}
                   
