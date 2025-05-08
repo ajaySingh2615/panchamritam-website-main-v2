@@ -370,8 +370,8 @@ class Order {
         const [orderResult] = await connection.execute(
           `INSERT INTO Orders (
             user_id, address_id, subtotal, total_tax, total_price, 
-            status, payment_method, payment_status
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            status, payment_method
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
             orderData.user_id,
             orderData.address_id,
@@ -379,8 +379,7 @@ class Order {
             taxCalculation.total_tax,
             taxCalculation.total,
             orderData.status || 'pending',
-            orderData.payment_method || 'Cash on Delivery',
-            orderData.payment_status || 'pending'
+            orderData.payment_method || 'Cash on Delivery'
           ]
         );
         
@@ -481,8 +480,8 @@ class Order {
         invoice: {
           order_id: orderId,
           invoice_number: `INV-${orderId}`,
-          invoice_date: order.created_at,
-          order_date: order.created_at,
+          invoice_date: order.created_at || order.order_date || new Date(),
+          order_date: order.order_date || order.created_at || new Date(),
           status: order.status
         },
         customer: {
@@ -520,8 +519,8 @@ class Order {
           total: parseFloat(order.total_price)
         },
         payment: {
-          method: order.payment_method,
-          status: order.payment_status
+          method: order.payment_method || 'Cash on Delivery',
+          status: order.payment_status || 'pending'
         }
       };
     } catch (error) {

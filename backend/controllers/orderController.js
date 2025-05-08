@@ -3,6 +3,8 @@ const Address = require('../models/address');
 const Cart = require('../models/cart');
 const Product = require('../models/product');
 const { AppError } = require('../middlewares/errorHandler');
+const { generateInvoicePDF } = require('../utils/pdfGenerator');
+const { sendInvoiceEmail } = require('../utils/emailService');
 
 // Create new order from cart (checkout)
 exports.checkout = async (req, res, next) => {
@@ -186,8 +188,7 @@ exports.createOrderWithTax = async (req, res, next) => {
       user_id: userId,
       address_id,
       status: 'pending',
-      payment_method,
-      payment_status: 'pending'
+      payment_method
     };
     
     // Create order
@@ -311,6 +312,124 @@ exports.cancelOrder = async (req, res, next) => {
       });
     }
   } catch (error) {
+    next(error);
+  }
+};
+
+// Generate PDF invoice for an order
+exports.generateInvoicePDF = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.user_id;
+    
+    // Get the order
+    const order = await Order.findById(id);
+    
+    if (!order) {
+      return next(new AppError('Order not found', 404));
+    }
+    
+    // Check if user has permission to view this order
+    if (order.user_id !== userId && req.user.role_name !== 'admin') {
+      return next(new AppError('You do not have permission to access this invoice', 403));
+    }
+    
+    // Generate tax invoice data
+    const invoice = await Order.generateTaxInvoice(id);
+    
+    // Use a temporary file stream
+    const fs = require('fs');
+    const path = require('path');
+    const { Writable } = require('stream');
+    const os = require('os');
+
+    // Create a temporary file path
+    const tempFilePath = path.join(os.tmpdir(), `Invoice-${invoice.invoice.invoice_number}.pdf`);
+    
+    // Create a proper writable stream
+    const pdfStream = fs.createWriteStream(tempFilePath);
+    
+    // Generate PDF
+    await generateInvoicePDF(invoice, pdfStream);
+    
+    // Read the generated file
+    const pdfBuffer = fs.readFileSync(tempFilePath);
+    
+    // Clean up the temporary file
+    fs.unlinkSync(tempFilePath);
+    
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=Invoice-${invoice.invoice.invoice_number}.pdf`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    // Send PDF
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error generating invoice PDF:', error);
+    next(error);
+  }
+};
+
+// Email invoice to customer
+exports.emailInvoice = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.body;
+    const userId = req.user.user_id;
+    
+    if (!email) {
+      return next(new AppError('Email address is required', 400));
+    }
+    
+    // Get the order
+    const order = await Order.findById(id);
+    
+    if (!order) {
+      return next(new AppError('Order not found', 404));
+    }
+    
+    // Check if user has permission to view this order
+    if (order.user_id !== userId && req.user.role_name !== 'admin') {
+      return next(new AppError('You do not have permission to access this invoice', 403));
+    }
+    
+    // Generate tax invoice data
+    const invoice = await Order.generateTaxInvoice(id);
+    
+    // Use a temporary file stream
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+
+    // Create a temporary file path
+    const tempFilePath = path.join(os.tmpdir(), `Invoice-${invoice.invoice.invoice_number}.pdf`);
+    
+    // Create a proper writable stream
+    const pdfStream = fs.createWriteStream(tempFilePath);
+    
+    // Generate PDF
+    await generateInvoicePDF(invoice, pdfStream);
+    
+    // Read the generated file
+    const pdfBuffer = fs.readFileSync(tempFilePath);
+    
+    // Clean up the temporary file
+    fs.unlinkSync(tempFilePath);
+    
+    // Send email with invoice PDF
+    await sendInvoiceEmail(email, invoice, pdfBuffer);
+    
+    res.status(200).json({
+      status: 'success',
+      message: `Invoice has been sent to ${email}`,
+      data: {
+        invoice_number: invoice.invoice.invoice_number,
+        email
+      }
+    });
+  } catch (error) {
+    console.error('Error emailing invoice:', error);
     next(error);
   }
 }; 

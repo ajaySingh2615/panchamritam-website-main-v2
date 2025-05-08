@@ -10,39 +10,68 @@
 
 .invoice-actions {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
   gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-.print-button, .download-button {
+.print-button,
+.download-button,
+.email-button,
+.view-invoice-button,
+.download-invoice-button,
+.email-invoice-button {
   display: flex;
   align-items: center;
   padding: 8px 16px;
   border-radius: 4px;
-  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  border: none;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s, transform 0.1s;
 }
 
-.print-button {
+.print-button,
+.view-invoice-button {
+  background-color: #f8f9fa;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.download-button,
+.download-invoice-button {
   background-color: #9bc948;
   color: white;
+  border: 1px solid #8ab938;
 }
 
-.download-button {
-  background-color: #e9ecef;
-  color: #464646;
+.email-button,
+.email-invoice-button {
+  background-color: #3b82f6;
+  color: white;
+  border: 1px solid #2563eb;
+}
+
+.print-button:hover,
+.download-button:hover,
+.email-button:hover,
+.view-invoice-button:hover,
+.download-invoice-button:hover,
+.email-invoice-button:hover {
+  transform: translateY(-1px);
 }
 
 .print-button:hover {
+  background-color: #e9ecef;
+}
+
+.download-button:hover,
+.download-invoice-button:hover {
   background-color: #8ab938;
 }
 
-.download-button:hover {
-  background-color: #dee2e6;
+.email-button:hover,
+.email-invoice-button:hover {
+  background-color: #2563eb;
 }
 
 .invoice-content {
@@ -221,6 +250,83 @@
   margin: 5px 0;
   font-size: 14px;
   color: #555;
+}
+
+.email-form-container {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.email-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.email-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-width: 250px;
+}
+
+.send-email-button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.send-email-button:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.email-error {
+  color: #dc2626;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.email-success {
+  background-color: #d1fae5;
+  color: #047857;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .invoice-actions {
+    flex-direction: column;
+  }
+  
+  .email-form {
+    flex-direction: column;
+  }
+  
+  .email-input,
+  .send-email-button,
+  .cancel-button {
+    width: 100%;
+  }
 }
 
 @media print {

@@ -31,16 +31,15 @@ class TaxService {
   // Admin: Get all GST rates
   static async getAllGSTRates(token) {
     try {
-      const response = await axios.get(
-        `${API_ENDPOINTS.TAX}/gst`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
+      const response = await axios.get(API_ENDPOINTS.GST, {
+        headers: { 
+          Authorization: `Bearer ${token}` 
         }
-      );
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching GST rates:', error);
-      throw error;
+      throw handleApiError(error);
     }
   }
   
@@ -293,37 +292,49 @@ class TaxService {
     }
   }
   
-  // Generate invoice PDF for an order
+  // Generate PDF invoice for order
   static async generateInvoicePDF(orderId, token) {
     try {
+      // Request the PDF as a blob
       const response = await axios.get(
         `${API_ENDPOINTS.ORDERS}/${orderId}/invoice/pdf`,
         {
-          headers: { Authorization: `Bearer ${token}` },
-          responseType: 'blob'
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          },
+          responseType: 'blob' // Important for binary responses
         }
       );
       
       return response.data;
     } catch (error) {
       console.error('Error generating invoice PDF:', error);
-      throw error;
+      throw handleApiError(error);
     }
   }
   
-  // Download invoice PDF for an order
-  static downloadInvoicePDF(pdfBlob, invoiceNumber) {
-    const url = window.URL.createObjectURL(pdfBlob);
+  // Helper function to download a blob as a file
+  static downloadInvoicePDF(blob, invoiceNumber) {
+    // Create a URL for the blob
+    const url = window.URL.createObjectURL(blob);
+    
+    // Create a temporary link element
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `Invoice-${invoiceNumber}.pdf`);
+    
+    // Add the link to the document
     document.body.appendChild(link);
+    
+    // Trigger the download
     link.click();
-    link.remove();
+    
+    // Clean up
     window.URL.revokeObjectURL(url);
+    document.body.removeChild(link);
   }
   
-  // Email invoice to customer
+  // Email invoice to specified email address
   static async emailInvoice(orderId, email, token) {
     try {
       const response = await axios.post(
@@ -331,15 +342,14 @@ class TaxService {
         { email },
         {
           headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${token}` 
           }
         }
       );
       return response.data;
     } catch (error) {
       console.error('Error emailing invoice:', error);
-      throw error;
+      throw handleApiError(error);
     }
   }
   

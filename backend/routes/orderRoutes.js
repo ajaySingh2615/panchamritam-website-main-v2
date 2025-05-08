@@ -25,4 +25,10 @@ router.patch('/:orderId/cancel', orderController.cancelOrder);
 // Get invoice for order
 router.get('/:id/invoice', orderController.generateInvoice);
 
+// Get invoice PDF for download
+router.get('/:id/invoice/pdf', orderController.generateInvoicePDF);
+
+// Email invoice
+router.post('/:id/invoice/email', orderController.emailInvoice);
+
 module.exports = router; 
