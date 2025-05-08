@@ -112,7 +112,20 @@ class TaxService {
       return response.data;
     } catch (error) {
       console.error('Error fetching HSN codes:', error);
-      throw error;
+      // Return a structured empty response instead of throwing an error
+      // This will prevent the component from crashing
+      return {
+        status: 'error',
+        message: 'Could not load HSN codes. The database table might not exist yet.',
+        data: {
+          codes: [],
+          pagination: {
+            page: 1,
+            limit,
+            hasMore: false
+          }
+        }
+      };
     }
   }
   
@@ -135,9 +148,21 @@ class TaxService {
   // Admin: Create HSN code
   static async createHSNCode(codeData, token) {
     try {
+      // Log the data being sent to help debug
+      console.log('Creating HSN code with data:', codeData);
+      
+      // Ensure all data is properly formatted
+      const formattedData = {
+        code: codeData.code.trim(),
+        description: codeData.description ? codeData.description.trim() : null,
+        default_gst_rate_id: codeData.default_gst_rate_id ? Number(codeData.default_gst_rate_id) : null
+      };
+      
+      console.log('Formatted data:', formattedData);
+      
       const response = await axios.post(
         `${API_ENDPOINTS.TAX}/hsn`,
-        codeData,
+        formattedData,
         {
           headers: { 
             Authorization: `Bearer ${token}`,
@@ -148,6 +173,13 @@ class TaxService {
       return response.data;
     } catch (error) {
       console.error('Error creating HSN code:', error);
+      if (error.response) {
+        console.error('Server response:', error.response.data);
+        throw {
+          ...error,
+          message: error.response.data.message || 'Failed to create HSN code'
+        };
+      }
       throw error;
     }
   }

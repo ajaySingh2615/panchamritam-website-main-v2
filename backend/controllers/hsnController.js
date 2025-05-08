@@ -8,21 +8,27 @@ exports.getAllCodes = async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
     const offset = (page - 1) * limit;
     
-    const codes = await HSN.findAll(limit, offset);
-    
-    res.status(200).json({
-      status: 'success',
-      results: codes.length,
-      pagination: {
-        page,
-        limit,
-        hasMore: codes.length === limit
-      },
-      data: {
-        codes
-      }
-    });
+    try {
+      const codes = await HSN.findAll(limit, offset);
+      
+      res.status(200).json({
+        status: 'success',
+        results: codes.length,
+        data: {
+          codes,
+          pagination: {
+            page,
+            limit,
+            hasMore: codes.length === limit
+          }
+        }
+      });
+    } catch (dbError) {
+      console.error('Database error in getAllCodes:', dbError);
+      return next(new AppError('Error fetching HSN codes from database', 500));
+    }
   } catch (error) {
+    console.error('Unexpected error in getAllCodes:', error);
     next(error);
   }
 };

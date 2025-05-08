@@ -28,6 +28,9 @@ CREATE TABLE `order_items` (
   `product_id` int DEFAULT NULL,
   `quantity` int DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
+  `tax_rate` decimal(5,2) NOT NULL DEFAULT '0.00',
+  `tax_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `hsn_code` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`order_item_id`),
   KEY `order_id` (`order_id`),
   KEY `product_id` (`product_id`),
@@ -42,7 +45,7 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,3,2,3.49);
+INSERT INTO `order_items` VALUES (1,1,3,2,3.49,0.00,0.00,NULL);
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -55,4 +58,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-02 18:28:09
+-- Dump completed on 2025-05-07 18:31:25

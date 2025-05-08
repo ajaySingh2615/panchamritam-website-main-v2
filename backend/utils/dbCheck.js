@@ -166,6 +166,80 @@ async function repairReviewsTable(missingColumns, existingColumns) {
   }
 }
 
+/**
+ * Check the HSN_codes and GST_rates tables
+ */
+async function checkTaxTables() {
+  try {
+    console.log('Checking tax tables...');
+    
+    // Check HSN_codes table
+    const [hsnTables] = await pool.query(`
+      SELECT TABLE_NAME FROM information_schema.TABLES 
+      WHERE TABLE_SCHEMA = DATABASE() 
+      AND TABLE_NAME = 'hsn_codes'
+    `);
+    
+    if (hsnTables.length === 0) {
+      console.log('HSN_codes table does not exist. Check your database setup.');
+      return;
+    }
+    
+    console.log('HSN_codes table exists, checking content...');
+    
+    // Check if table has records
+    const [hsnCount] = await pool.query('SELECT COUNT(*) as count FROM hsn_codes');
+    console.log(`HSN_codes table has ${hsnCount[0].count} records.`);
+    
+    if (hsnCount[0].count > 0) {
+      const [hsnSample] = await pool.query('SELECT * FROM hsn_codes LIMIT 3');
+      console.log('Sample HSN records:', JSON.stringify(hsnSample, null, 2));
+    }
+    
+    // Check GST_rates table
+    const [gstTables] = await pool.query(`
+      SELECT TABLE_NAME FROM information_schema.TABLES 
+      WHERE TABLE_SCHEMA = DATABASE() 
+      AND TABLE_NAME = 'gst_rates'
+    `);
+    
+    if (gstTables.length === 0) {
+      console.log('GST_rates table does not exist. Check your database setup.');
+      return;
+    }
+    
+    console.log('GST_rates table exists, checking content...');
+    
+    // Check if table has records
+    const [gstCount] = await pool.query('SELECT COUNT(*) as count FROM gst_rates');
+    console.log(`GST_rates table has ${gstCount[0].count} records.`);
+    
+    if (gstCount[0].count > 0) {
+      const [gstSample] = await pool.query('SELECT * FROM gst_rates LIMIT 3');
+      console.log('Sample GST records:', JSON.stringify(gstSample, null, 2));
+    }
+    
+    // Test the join
+    const [joinResult] = await pool.query(`
+      SELECT h.*, g.rate_name, g.percentage 
+      FROM hsn_codes h
+      LEFT JOIN gst_rates g ON h.default_gst_rate_id = g.rate_id
+      LIMIT 3
+    `);
+    
+    console.log(`Join query returned ${joinResult.length} records.`);
+    if (joinResult.length > 0) {
+      console.log('Sample join result:', JSON.stringify(joinResult[0], null, 2));
+    } else {
+      console.log('Join returned no results. This suggests there might be an issue with foreign keys or data consistency.');
+    }
+    
+  } catch (error) {
+    console.error('Error checking tax tables:', error);
+  }
+}
+
 module.exports = {
-  checkReviewsTable
+  checkReviewsTable,
+  checkTaxTables
 }; 

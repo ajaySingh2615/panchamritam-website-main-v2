@@ -16,28 +16,34 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `roles`
+-- Table structure for table `hsn_codes`
 --
 
-DROP TABLE IF EXISTS `roles`;
+DROP TABLE IF EXISTS `hsn_codes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `roles` (
-  `role_id` int NOT NULL AUTO_INCREMENT,
-  `role_name` varchar(50) NOT NULL,
-  PRIMARY KEY (`role_id`),
-  UNIQUE KEY `role_name` (`role_name`)
+CREATE TABLE `hsn_codes` (
+  `hsn_id` int NOT NULL AUTO_INCREMENT,
+  `code` varchar(20) NOT NULL,
+  `description` text,
+  `default_gst_rate_id` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`hsn_id`),
+  UNIQUE KEY `code` (`code`),
+  KEY `default_gst_rate_id` (`default_gst_rate_id`),
+  CONSTRAINT `hsn_codes_ibfk_1` FOREIGN KEY (`default_gst_rate_id`) REFERENCES `gst_rates` (`rate_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `roles`
+-- Dumping data for table `hsn_codes`
 --
 
-LOCK TABLES `roles` WRITE;
-/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
-INSERT INTO `roles` VALUES (1,'admin'),(2,'user');
-/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+LOCK TABLES `hsn_codes` WRITE;
+/*!40000 ALTER TABLE `hsn_codes` DISABLE KEYS */;
+INSERT INTO `hsn_codes` VALUES (1,'12',NULL,1,'2025-05-07 12:46:59','2025-05-07 12:46:59'),(2,'1',NULL,1,'2025-05-07 12:51:20','2025-05-07 12:51:20');
+/*!40000 ALTER TABLE `hsn_codes` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-02 18:28:09
+-- Dump completed on 2025-05-07 18:31:25

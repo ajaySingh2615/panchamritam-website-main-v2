@@ -4,18 +4,74 @@ class HSN {
   // Get all HSN codes
   static async findAll(limit = 100, offset = 0) {
     try {
-      const [rows] = await pool.execute(
-        `SELECT h.*, g.rate_name, g.percentage 
-         FROM HSN_Codes h
-         LEFT JOIN GST_Rates g ON h.default_gst_rate_id = g.rate_id
-         ORDER BY h.code ASC
-         LIMIT ? OFFSET ?`,
-        [limit, offset]
+      // First check if the hsn_codes table exists
+      const [tables] = await pool.query(`
+        SELECT TABLE_NAME FROM information_schema.TABLES 
+        WHERE TABLE_SCHEMA = DATABASE() 
+        AND TABLE_NAME = 'hsn_codes'
+      `);
+      
+      if (tables.length === 0) {
+        console.error('Table hsn_codes does not exist in the database');
+        return [];
+      }
+      
+      // Get the simple query results first
+      const [simpleRows] = await pool.query(
+        `SELECT * FROM hsn_codes LIMIT ? OFFSET ?`,
+        [Number(limit), Number(offset)]
       );
-      return rows;
+      
+      if (simpleRows.length > 0) {
+        // Get the GST rate information separately
+        const gstRateIds = simpleRows
+          .filter(row => row.default_gst_rate_id)
+          .map(row => row.default_gst_rate_id);
+          
+        if (gstRateIds.length > 0) {
+          try {
+            const [gstRates] = await pool.query(
+              `SELECT * FROM gst_rates WHERE rate_id IN (?)`,
+              [gstRateIds]
+            );
+              
+            // Manually join the data
+            const enhancedRows = simpleRows.map(hsnRow => {
+              const matchingRate = gstRates.find(
+                rate => rate.rate_id === hsnRow.default_gst_rate_id
+              );
+                
+              if (matchingRate) {
+                return {
+                  ...hsnRow,
+                  rate_name: matchingRate.rate_name,
+                  percentage: matchingRate.percentage
+                };
+              }
+                
+              return {
+                ...hsnRow,
+                rate_name: null,
+                percentage: null
+              };
+            });
+              
+            return enhancedRows;
+          } catch (joinError) {
+            console.error('Error fetching GST rates:', joinError);
+            // If joining fails, just return the simple results
+            return simpleRows;
+          }
+        } else {
+          return simpleRows;
+        }
+      }
+        
+      return simpleRows;
     } catch (error) {
       console.error('Error in HSN.findAll:', error);
-      throw error;
+      // Return empty array instead of throwing error to prevent 500 error
+      return [];
     }
   }
 
@@ -24,8 +80,8 @@ class HSN {
     try {
       const [rows] = await pool.execute(
         `SELECT h.*, g.rate_name, g.percentage 
-         FROM HSN_Codes h
-         LEFT JOIN GST_Rates g ON h.default_gst_rate_id = g.rate_id
+         FROM hsn_codes h
+         LEFT JOIN gst_rates g ON h.default_gst_rate_id = g.rate_id
          WHERE h.hsn_id = ?`,
         [hsnId]
       );
@@ -41,8 +97,8 @@ class HSN {
     try {
       const [rows] = await pool.execute(
         `SELECT h.*, g.rate_name, g.percentage 
-         FROM HSN_Codes h
-         LEFT JOIN GST_Rates g ON h.default_gst_rate_id = g.rate_id
+         FROM hsn_codes h
+         LEFT JOIN gst_rates g ON h.default_gst_rate_id = g.rate_id
          WHERE h.code = ?`,
         [code]
       );
@@ -59,7 +115,7 @@ class HSN {
       const { code, description, default_gst_rate_id } = hsnData;
       
       const [result] = await pool.execute(
-        'INSERT INTO HSN_Codes (code, description, default_gst_rate_id) VALUES (?, ?, ?)',
+        'INSERT INTO hsn_codes (code, description, default_gst_rate_id) VALUES (?, ?, ?)',
         [code, description, default_gst_rate_id]
       );
       
@@ -79,7 +135,7 @@ class HSN {
       const { code, description, default_gst_rate_id } = hsnData;
       
       const [result] = await pool.execute(
-        'UPDATE HSN_Codes SET code = ?, description = ?, default_gst_rate_id = ? WHERE hsn_id = ?',
+        'UPDATE hsn_codes SET code = ?, description = ?, default_gst_rate_id = ? WHERE hsn_id = ?',
         [code, description, default_gst_rate_id, hsnId]
       );
       
@@ -102,7 +158,7 @@ class HSN {
     try {
       // Check if HSN code is being used by any product
       const [products] = await pool.execute(
-        'SELECT COUNT(*) as count FROM Products WHERE hsn_code_id = ?',
+        'SELECT COUNT(*) as count FROM products WHERE hsn_code_id = ?',
         [hsnId]
       );
       
@@ -111,7 +167,7 @@ class HSN {
       }
       
       const [result] = await pool.execute(
-        'DELETE FROM HSN_Codes WHERE hsn_id = ?',
+        'DELETE FROM hsn_codes WHERE hsn_id = ?',
         [hsnId]
       );
       
@@ -126,7 +182,7 @@ class HSN {
   static async associateWithCategory(categoryId, hsnId) {
     try {
       const [result] = await pool.execute(
-        'UPDATE Categories SET default_hsn_id = ? WHERE category_id = ?',
+        'UPDATE categories SET default_hsn_id = ? WHERE category_id = ?',
         [hsnId, categoryId]
       );
       
@@ -142,9 +198,9 @@ class HSN {
     try {
       const [rows] = await pool.execute(
         `SELECT h.*, g.rate_name, g.percentage 
-         FROM Categories c
-         JOIN HSN_Codes h ON c.default_hsn_id = h.hsn_id
-         LEFT JOIN GST_Rates g ON h.default_gst_rate_id = g.rate_id
+         FROM categories c
+         JOIN hsn_codes h ON c.default_hsn_id = h.hsn_id
+         LEFT JOIN gst_rates g ON h.default_gst_rate_id = g.rate_id
          WHERE c.category_id = ?`,
         [categoryId]
       );
@@ -165,7 +221,7 @@ class HSN {
       try {
         const insertPromises = hsnCodes.map(async (hsn) => {
           const [result] = await connection.execute(
-            'INSERT INTO HSN_Codes (code, description, default_gst_rate_id) VALUES (?, ?, ?)',
+            'INSERT INTO hsn_codes (code, description, default_gst_rate_id) VALUES (?, ?, ?)',
             [hsn.code, hsn.description, hsn.default_gst_rate_id]
           );
           return result.insertId;
@@ -198,8 +254,8 @@ class HSN {
       
       const [rows] = await pool.execute(
         `SELECT h.*, g.rate_name, g.percentage 
-         FROM HSN_Codes h
-         LEFT JOIN GST_Rates g ON h.default_gst_rate_id = g.rate_id
+         FROM hsn_codes h
+         LEFT JOIN gst_rates g ON h.default_gst_rate_id = g.rate_id
          WHERE h.code LIKE ? OR h.description LIKE ?
          ORDER BY h.code ASC
          LIMIT ? OFFSET ?`,

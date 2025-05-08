@@ -16,32 +16,31 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `blogs`
+-- Table structure for table `gst_rates`
 --
 
-DROP TABLE IF EXISTS `blogs`;
+DROP TABLE IF EXISTS `gst_rates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `blogs` (
-  `blog_id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(200) DEFAULT NULL,
-  `content` text,
-  `author_id` int DEFAULT NULL,
+CREATE TABLE `gst_rates` (
+  `rate_id` int NOT NULL AUTO_INCREMENT,
+  `rate_name` varchar(50) NOT NULL,
+  `percentage` decimal(5,2) NOT NULL,
+  `description` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`blog_id`),
-  KEY `author_id` (`author_id`),
-  CONSTRAINT `blogs_ibfk_1` FOREIGN KEY (`author_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`rate_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `blogs`
+-- Dumping data for table `gst_rates`
 --
 
-LOCK TABLES `blogs` WRITE;
-/*!40000 ALTER TABLE `blogs` DISABLE KEYS */;
-INSERT INTO `blogs` VALUES (2,'New Blog Post','This is the content of the blog post. It can be a long text with formatting if needed.',2,'2025-04-23 06:36:33');
-/*!40000 ALTER TABLE `blogs` ENABLE KEYS */;
+LOCK TABLES `gst_rates` WRITE;
+/*!40000 ALTER TABLE `gst_rates` DISABLE KEYS */;
+INSERT INTO `gst_rates` VALUES (1,'Unbranded, Unpackaged Food Grains',5.00,NULL,'2025-05-07 12:37:22','2025-05-07 12:37:22');
+/*!40000 ALTER TABLE `gst_rates` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -53,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-02 18:28:09
+-- Dump completed on 2025-05-07 18:31:25

@@ -239,11 +239,26 @@ const HSNCodesManagement = () => {
     setLoading(true);
     try {
       const response = await TaxService.getAllHSNCodes(pageNum, 20, token);
-      setCodes(response.data.codes);
-      setHasMore(response.data.pagination.hasMore);
-      setPage(pageNum);
+      
+      if (response.status === 'error') {
+        // Handle the graceful error from our modified service
+        setCodes([]);
+        setHasMore(false);
+        setPage(1);
+        toast.warning(response.message || 'Failed to load HSN codes');
+      } else {
+        // Handle successful response
+        const codesData = response.data?.codes || [];
+        const pagination = response.data?.pagination || { page: 1, limit: 20, hasMore: false };
+        
+        setCodes(codesData);
+        setHasMore(!!pagination.hasMore);
+        setPage(pageNum);
+      }
     } catch (error) {
-      toast.error('Failed to load HSN codes');
+      toast.error('Failed to load HSN codes. There might be an issue with the database.');
+      setCodes([]);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
@@ -284,13 +299,21 @@ const HSNCodesManagement = () => {
     
     setLoading(true);
     try {
+      // Prepare data - convert empty string to null for default_gst_rate_id
+      const formattedData = {
+        ...newCode,
+        code: newCode.code.trim(),
+        description: newCode.description ? newCode.description.trim() : '',
+        default_gst_rate_id: newCode.default_gst_rate_id || null
+      };
+      
       if (editMode) {
         // Update existing code
-        await TaxService.updateHSNCode(currentCodeId, newCode, token);
+        await TaxService.updateHSNCode(currentCodeId, formattedData, token);
         toast.success('HSN code updated successfully');
       } else {
         // Create new code
-        await TaxService.createHSNCode(newCode, token);
+        await TaxService.createHSNCode(formattedData, token);
         toast.success('HSN code created successfully');
       }
       
@@ -300,7 +323,29 @@ const HSNCodesManagement = () => {
       setCurrentCodeId(null);
       fetchCodes();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save HSN code');
+      console.error('Form submission error:', error);
+      
+      // Extract the most helpful error message
+      let errorMessage = 'Failed to save HSN code';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Show specific guidance for common errors
+      if (errorMessage.includes('already exists')) {
+        toast.error(`HSN code "${newCode.code}" already exists. Please use a different code.`);
+      } else if (errorMessage.includes('required')) {
+        toast.error('Please fill in all required fields.');
+      } else if (errorMessage.includes('400')) {
+        toast.error('Invalid data format. Check that all fields are valid.');
+      } else if (errorMessage.includes('500')) {
+        toast.error('Server error. The database might not be properly set up.');
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -446,7 +491,20 @@ const HSNCodesManagement = () => {
         <h3 className="text-lg font-medium mb-4">HSN Codes</h3>
         {loading && <p className="text-gray-500">Loading codes...</p>}
         {!loading && codes.length === 0 && (
-          <p className="text-gray-500">No HSN codes found. Add your first one above.</p>
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <h4 className="font-medium text-yellow-800 mb-2">No HSN codes found</h4>
+            <p className="text-gray-700 mb-2">
+              This could be due to one of the following reasons:
+            </p>
+            <ul className="list-disc pl-5 mb-3 text-gray-700">
+              <li>The HSN_Codes table might not exist in your database yet</li>
+              <li>You haven't added any HSN codes yet</li>
+              <li>There may be a connection issue with the database</li>
+            </ul>
+            <p className="text-gray-700">
+              Try adding your first HSN code using the form above. If you encounter errors, check your backend logs for more information.
+            </p>
+          </div>
         )}
         {!loading && codes.length > 0 && (
           <>

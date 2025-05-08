@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const passport = require('passport');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { testConnection } = require('./config/db');
-const { checkReviewsTable } = require('./utils/dbCheck');
+const { checkReviewsTable, checkTaxTables } = require('./utils/dbCheck');
 
 // Load environment variables
 dotenv.config();
@@ -94,6 +94,7 @@ app.listen(PORT, async () => {
     try {
       console.log('Checking database tables...');
       await checkReviewsTable();
+      await checkTaxTables();
     } catch (error) {
       console.error('Error checking database tables:', error);
     }

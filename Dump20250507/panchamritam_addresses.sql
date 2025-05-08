@@ -38,7 +38,7 @@ CREATE TABLE `addresses` (
   PRIMARY KEY (`address_id`),
   KEY `idx_user_addresses` (`user_id`,`is_default`),
   CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,7 +47,7 @@ CREATE TABLE `addresses` (
 
 LOCK TABLES `addresses` WRITE;
 /*!40000 ALTER TABLE `addresses` DISABLE KEYS */;
-INSERT INTO `addresses` VALUES (2,3,'123 Main Street','New York','NY','10001','USA','123-456-7890',NULL,'Home',0,'2025-04-30 07:25:00'),(3,3,'123 Main Street','Jhansi','NY','122101','India','8808319836',NULL,'Home',0,'2025-04-30 07:25:00'),(4,13,'324, zen den pg, 3rd block, gurgram, GURUGRAM','GURUGRAM','HARYANA','122101','India','08808319836','Ajay Singh','Home',1,'2025-04-30 07:38:55'),(5,13,'114, zen den pg, 5th block, noida, alpha-2','GURUGRAM','Uttar Pradesh','122101','India','8808319836','Ajay Singh','Office',0,'2025-04-30 07:40:02');
+INSERT INTO `addresses` VALUES (2,3,'123 Main Street','New York','NY','10001','USA','123-456-7890',NULL,'Home',0,'2025-04-30 07:25:00'),(3,3,'123 Main Street','Jhansi','NY','122101','India','8808319836',NULL,'Home',0,'2025-04-30 07:25:00'),(4,13,'324, zen den pg, 3rd block, gurgram, GURUGRAM','GURUGRAM','HARYANA','122101','India','08808319836','Ajay Singh','Home',1,'2025-04-30 07:38:55'),(5,13,'114, zen den pg, 5th block, noida, alpha-2','GURUGRAM','Uttar Pradesh','122101','India','8808319836','Ajay Singh','Office',0,'2025-04-30 07:40:02'),(6,12,'32A, noida, greater noida, noida','Gurgaon, India','uttar pradesh','284001','India','8808319836','Lalit Kumar','Home',1,'2025-05-07 11:51:38');
 /*!40000 ALTER TABLE `addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -60,4 +60,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-02 18:28:10
+-- Dump completed on 2025-05-07 18:31:25
