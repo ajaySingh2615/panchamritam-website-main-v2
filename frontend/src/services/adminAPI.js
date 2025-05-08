@@ -211,7 +211,7 @@ export const createProduct = async (productData) => {
 
 export const updateProduct = async (productId, productData) => {
   try {
-    const response = await api.put(`/products/${productId}`, productData);
+    const response = await api.patch(`/products/${productId}`, productData);
     return response.data;
   } catch (error) {
     throw handleError(error);

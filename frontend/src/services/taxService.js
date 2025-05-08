@@ -227,9 +227,19 @@ class TaxService {
   // Admin: Update product tax attributes
   static async updateProductTaxAttributes(productId, taxData, token) {
     try {
+      // Format the data properly for the backend
+      const formattedData = {
+        hsn_code_id: taxData.hsn_code_id ? Number(taxData.hsn_code_id) : null,
+        is_branded: taxData.is_branded === true ? 1 : 0,
+        is_packaged: taxData.is_packaged === true ? 1 : 0,
+        custom_gst_rate_id: taxData.custom_gst_rate_id ? Number(taxData.custom_gst_rate_id) : null
+      };
+      
+      console.log('Sending tax data to backend:', formattedData);
+      
       const response = await axios.patch(
         `${API_ENDPOINTS.PRODUCTS}/${productId}/tax`,
-        taxData,
+        formattedData,
         {
           headers: { 
             Authorization: `Bearer ${token}`,

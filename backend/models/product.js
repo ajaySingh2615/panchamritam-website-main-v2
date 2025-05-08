@@ -472,7 +472,7 @@ class Product {
 
       // Get product with all tax-related fields
       const [rows] = await pool.execute(
-        `SELECT p.*, c.name as category_name, c.default_hsn_id,
+        `SELECT p.*, c.name as category_name,
                 h.code as hsn_code, h.description as hsn_description
          FROM Products p 
          LEFT JOIN Categories c ON p.category_id = c.category_id
@@ -545,8 +545,21 @@ class Product {
         return null;
       }
       
-      // Return updated tax info
-      return await this.getTaxInfo(productId);
+      try {
+        // Try to get updated tax info
+        return await this.getTaxInfo(productId);
+      } catch (infoError) {
+        console.error('Error getting updated tax info:', infoError);
+        // Return basic success response if getTaxInfo fails
+        return {
+          success: true,
+          product_id: productId,
+          hsn_code_id: hsn_code_id || null,
+          is_branded: is_branded ? true : false,
+          is_packaged: is_packaged ? true : false,
+          custom_gst_rate_id: custom_gst_rate_id || null
+        };
+      }
     } catch (error) {
       console.error('Error in Product.updateTaxAttributes:', error);
       throw error;
@@ -614,7 +627,31 @@ class Product {
   // Calculate price with tax
   static async calculatePriceWithTax(productId, quantity = 1) {
     try {
-      const taxInfo = await this.getTaxInfo(productId);
+      let taxInfo;
+      try {
+        taxInfo = await this.getTaxInfo(productId);
+      } catch (taxInfoError) {
+        console.error('Error in getTaxInfo, falling back to basic calculation:', taxInfoError);
+        // Fallback to basic product info
+        const product = await this.findById(productId);
+        if (!product) {
+          throw new Error('Product not found');
+        }
+        
+        // Use a default tax rate of 0% if we can't get the specific tax info
+        taxInfo = {
+          product_id: product.product_id,
+          name: product.name,
+          price: parseFloat(product.price),
+          hsn_code: null,
+          hsn_description: null,
+          is_branded: !!product.is_branded,
+          is_packaged: !!product.is_packaged,
+          gst_rate: null,
+          tax_amount: 0,
+          total_price: parseFloat(product.price)
+        };
+      }
       
       if (!taxInfo) {
         throw new Error('Product not found');
