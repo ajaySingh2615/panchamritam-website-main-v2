@@ -14,6 +14,7 @@ const Checkout = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [loading, setLoading] = useState(true);
+  const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [cartTotals, setCartTotals] = useState({ subtotal: '0.00', tax: '0.00', total: '0.00' });
@@ -94,6 +95,9 @@ const Checkout = () => {
 
   const handlePlaceOrder = async () => {
     try {
+      setPlacingOrder(true);
+      setError(null);
+      
       const orderData = {
         address_id: selectedAddress,
         payment_method: paymentMethod,
@@ -125,6 +129,8 @@ const Checkout = () => {
       navigate(`/order-confirmation/${data.data.order.order_id}`);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setPlacingOrder(false);
     }
   };
 
@@ -298,11 +304,18 @@ const Checkout = () => {
               </div>
               
               <button 
-                className="place-order-button"
+                className={`place-order-button ${placingOrder ? 'processing' : ''}`}
                 onClick={handlePlaceOrder}
-                disabled={!selectedAddress}
+                disabled={!selectedAddress || placingOrder}
               >
-                Place Order
+                {placingOrder ? (
+                  <>
+                    <span className="button-spinner"></span>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  'Place Order'
+                )}
               </button>
               
               <div className="checkout-note">
