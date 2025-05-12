@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { createApiUrl } from '../config/api';
 import Breadcrumb from '../components/common/Breadcrumb';
-import './Checkout.css'; // Reuse checkout styles
 
 const AddressForm = () => {
   const navigate = useNavigate();
@@ -105,199 +104,93 @@ const AddressForm = () => {
   }
 
   return (
-    <div className="checkout-page">
-      <div className="checkout-container">
+    <div className="min-h-screen flex items-center justify-center py-8 px-2 pt-20 md:pt-24" style={{ backgroundColor: '#f8f6f3' }}>
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
         <Breadcrumb items={breadcrumbItems} />
-
-        <h1>Add New Address</h1>
-
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">Add New Address</h1>
         {error && (
-          <div className="error-container">
-            <p className="error-message">{error}</p>
+          <div className="mb-4 flex items-center bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-12.728 12.728M5.636 5.636l12.728 12.728" /></svg>
+            <span>{error}</span>
           </div>
         )}
-
-        <form onSubmit={handleSubmit} className="address-form">
-          <div className="form-group">
-            <label htmlFor="name">Full Name*</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
+        {success && (
+          <div className="mb-4 flex items-center bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+            <span>Address Added Successfully! Redirecting back to checkout...</span>
           </div>
-
-          <div className="form-group">
-            <label htmlFor="phoneNumber">Phone Number*</label>
-            <input
-              type="tel"
-              id="phoneNumber"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="houseNo">House No, Building*</label>
-            <input
-              type="text"
-              id="houseNo"
-              name="houseNo"
-              value={formData.houseNo}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="street">Street*</label>
-            <input
-              type="text"
-              id="street"
-              name="street"
-              value={formData.street}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="area">Area*</label>
-            <input
-              type="text"
-              id="area"
-              name="area"
-              value={formData.area}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="locality">Locality/Town*</label>
-            <input
-              type="text"
-              id="locality"
-              name="locality"
-              value={formData.locality}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="city">City/District*</label>
-              <input
-                type="text"
-                id="city"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                required
-              />
+        )}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="name" className="block font-semibold text-gray-700 mb-1">Full Name*</label>
+              <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
             </div>
-
-            <div className="form-group">
-              <label htmlFor="state">State*</label>
-              <input
-                type="text"
-                id="state"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                required
-              />
+            <div>
+              <label htmlFor="phoneNumber" className="block font-semibold text-gray-700 mb-1">Phone Number*</label>
+              <input type="tel" id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div>
+              <label htmlFor="houseNo" className="block font-semibold text-gray-700 mb-1">House No, Building*</label>
+              <input type="text" id="houseNo" name="houseNo" value={formData.houseNo} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div>
+              <label htmlFor="street" className="block font-semibold text-gray-700 mb-1">Street*</label>
+              <input type="text" id="street" name="street" value={formData.street} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div>
+              <label htmlFor="area" className="block font-semibold text-gray-700 mb-1">Area*</label>
+              <input type="text" id="area" name="area" value={formData.area} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div>
+              <label htmlFor="locality" className="block font-semibold text-gray-700 mb-1">Locality/Town*</label>
+              <input type="text" id="locality" name="locality" value={formData.locality} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div>
+              <label htmlFor="city" className="block font-semibold text-gray-700 mb-1">City/District*</label>
+              <input type="text" id="city" name="city" value={formData.city} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div>
+              <label htmlFor="state" className="block font-semibold text-gray-700 mb-1">State*</label>
+              <input type="text" id="state" name="state" value={formData.state} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div>
+              <label htmlFor="zipCode" className="block font-semibold text-gray-700 mb-1">Pin Code*</label>
+              <input type="text" id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            </div>
+            <div>
+              <label htmlFor="country" className="block font-semibold text-gray-700 mb-1">Country*</label>
+              <input type="text" id="country" name="country" value={formData.country} onChange={handleChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500" />
             </div>
           </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="zipCode">Pin Code*</label>
-              <input
-                type="text"
-                id="zipCode"
-                name="zipCode"
-                value={formData.zipCode}
-                onChange={handleChange}
-                required
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Type of Address*</label>
+              <div className="flex gap-4 mt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="addressType" value="Home" checked={formData.addressType === 'Home'} onChange={handleChange} required className="w-5 h-5 text-green-600 focus:ring-green-500" />
+                  <span>Home</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="addressType" value="Office" checked={formData.addressType === 'Office'} onChange={handleChange} className="w-5 h-5 text-green-600 focus:ring-green-500" />
+                  <span>Office</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="addressType" value="Other" checked={formData.addressType === 'Other'} onChange={handleChange} className="w-5 h-5 text-green-600 focus:ring-green-500" />
+                  <span>Other</span>
+                </label>
+              </div>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="country">Country*</label>
-              <input
-                type="text"
-                id="country"
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Type of Address*</label>
-            <div className="address-type-options">
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="addressType"
-                  value="Home"
-                  checked={formData.addressType === "Home"}
-                  onChange={handleChange}
-                  required
-                />
-                <span>Home</span>
-              </label>
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="addressType"
-                  value="Office"
-                  checked={formData.addressType === "Office"}
-                  onChange={handleChange}
-                />
-                <span>Office</span>
-              </label>
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="addressType"
-                  value="Other"
-                  checked={formData.addressType === "Other"}
-                  onChange={handleChange}
-                />
-                <span>Other</span>
+            <div className="flex items-end">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="isDefault" checked={formData.isDefault} onChange={handleChange} className="w-5 h-5 text-green-600 focus:ring-green-500" />
+                <span>Make this my default address</span>
               </label>
             </div>
           </div>
-
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="isDefault"
-                checked={formData.isDefault}
-                onChange={handleChange}
-              />
-              <span>Make this my default address</span>
-            </label>
-          </div>
-
-          <div className="form-actions">
-            <button type="button" className="cancel-button" onClick={() => navigate('/checkout')}>
-              Cancel
-            </button>
-            <button type="submit" className="submit-button">
-              Save Address
-            </button>
+          <div className="flex justify-between gap-4 mt-8">
+            <button type="button" className="px-6 py-3 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition" onClick={() => navigate('/checkout')}>Cancel</button>
+            <button type="submit" className="px-6 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition">Save Address</button>
           </div>
         </form>
       </div>

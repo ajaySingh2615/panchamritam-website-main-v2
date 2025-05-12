@@ -4,7 +4,6 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { createApiUrl } from '../config/api';
-import './Checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -136,26 +135,34 @@ const Checkout = () => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading checkout information...</p>
+      <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
+        <div className="bg-white p-8 rounded-xl shadow flex flex-col items-center">
+          <svg className="animate-spin h-8 w-8 text-green-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+          <p className="text-gray-700">Loading checkout information...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="error-container">
-        <p className="error-message">{error}</p>
+      <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
+        <div className="bg-white p-8 rounded-xl shadow flex flex-col items-center">
+          <p className="text-red-600 font-semibold mb-2">{error}</p>
+          <button className="mt-2 px-4 py-2 rounded bg-green-600 text-white" onClick={() => setError(null)}>Close</button>
+        </div>
       </div>
     );
   }
 
   if (orderPlaced) {
     return (
-      <div className="success-container">
-        <h2>Order Placed Successfully!</h2>
-        <p>Thank you for your purchase. You will receive a confirmation email shortly.</p>
+      <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
+        <div className="bg-white p-8 rounded-xl shadow flex flex-col items-center">
+          <h2 className="text-2xl font-bold text-green-700 mb-2">Order Placed Successfully!</h2>
+          <p className="text-gray-700 mb-4">Thank you for your purchase. You will receive a confirmation email shortly.</p>
+          <button className="px-4 py-2 rounded bg-green-600 text-white" onClick={() => setOrderPlaced(false)}>Close</button>
+        </div>
       </div>
     );
   }
@@ -176,99 +183,96 @@ const Checkout = () => {
   ];
 
   return (
-    <div className="checkout-page">
-      <div className="checkout-container">
+    <div className="min-h-screen bg-gray-50 py-8 px-2">
+      <div className="max-w-5xl mx-auto">
         <Breadcrumb items={breadcrumbItems} />
-
-        <h1>Checkout</h1>
-
-        <div className="checkout-content">
-          <div className="checkout-main">
-            <section className="address-section">
-              <h2>Shipping Address</h2>
-              <div className="address-list">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">Checkout</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="md:col-span-2 space-y-8">
+            {/* Address Section */}
+            <section className="bg-white rounded-xl shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Shipping Address</h2>
+              <div className="flex flex-col gap-4">
                 {addresses.map((address) => (
                   <div
                     key={address.address_id}
-                    className={`address-card ${selectedAddress === address.address_id ? 'selected' : ''}`}
+                    className={`flex items-center justify-between p-4 rounded-lg border transition-colors duration-200 cursor-pointer ${selectedAddress === address.address_id ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-green-300'}`}
                     onClick={() => handleAddressSelect(address.address_id)}
                   >
-                    <div className="address-details">
-                      <p className="address-name">{address.name}</p>
-                      <p className="address-street">{address.address_line}</p>
-                      <p className="address-city">
-                        {address.city}, {address.state} {address.zip_code}
-                      </p>
-                      <p className="address-phone">{address.phone_number}</p>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-800">{address.name}</p>
+                      <p className="text-gray-600 text-sm">{address.address_line}</p>
+                      <p className="text-gray-600 text-sm">{address.city}, {address.state} {address.zip_code}</p>
+                      <p className="text-gray-500 text-xs">{address.phone_number}</p>
                     </div>
-                    <button className="select-address-button">
-                      {selectedAddress === address.address_id ? 'Selected' : 'Select'}
-                    </button>
+                    <button className={`ml-4 px-4 py-2 rounded border font-medium transition ${selectedAddress === address.address_id ? 'bg-green-500 text-white border-green-500' : 'bg-white text-green-600 border-green-500 hover:bg-green-50'}`}>{selectedAddress === address.address_id ? 'Selected' : 'Select'}</button>
                   </div>
                 ))}
                 <button 
-                  className="add-address-button"
+                  className="w-full py-3 border-2 border-dashed border-green-400 rounded-lg text-green-700 font-semibold hover:bg-green-50 transition"
                   onClick={() => navigate('/address/add')}
                 >
                   + Add New Address
                 </button>
               </div>
             </section>
-
-            <section className="payment-section">
-              <h2>Payment Method</h2>
-              <div className="payment-methods">
-                <label className="payment-method">
+            {/* Payment Section */}
+            <section className="bg-white rounded-xl shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Payment Method</h2>
+              <div className="flex flex-col gap-4">
+                <label className={`flex items-center gap-3 p-3 rounded border cursor-pointer transition ${paymentMethod === 'cod' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-green-300'}`}> 
                   <input
                     type="radio"
                     name="payment"
                     value="cod"
                     checked={paymentMethod === 'cod'}
                     onChange={() => handlePaymentMethodChange('cod')}
+                    className="w-5 h-5 text-green-600 focus:ring-green-500"
                   />
-                  <span>Cash on Delivery</span>
+                  <span className="font-medium text-gray-700">Cash on Delivery</span>
                 </label>
-                <label className="payment-method">
+                <label className={`flex items-center gap-3 p-3 rounded border cursor-pointer transition ${paymentMethod === 'card' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-green-300'}`}> 
                   <input
                     type="radio"
                     name="payment"
                     value="card"
                     checked={paymentMethod === 'card'}
                     onChange={() => handlePaymentMethodChange('card')}
+                    className="w-5 h-5 text-green-600 focus:ring-green-500"
                   />
-                  <span>Credit/Debit Card</span>
+                  <span className="font-medium text-gray-700">Credit/Debit Card</span>
                 </label>
               </div>
             </section>
           </div>
-
-          <div className="checkout-sidebar">
-            <div className="order-summary">
-              <h2>Order Summary</h2>
-              <div className="summary-items">
+          {/* Sidebar */}
+          <div className="md:col-span-1">
+            <div className="bg-white rounded-xl shadow p-6 sticky top-24">
+              <h2 className="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Order Summary</h2>
+              <div className="mb-4 divide-y">
                 {cartItems.map((item) => (
-                  <div key={item.product_id} className="summary-item">
-                    <div className="item-info">
-                      <span className="item-name">{item.name}</span>
-                      <span className="item-quantity">x {item.quantity}</span>
+                  <div key={item.product_id} className="flex justify-between py-2 text-gray-700 text-sm">
+                    <div>
+                      <span className="font-medium">{item.name}</span>
+                      <span className="ml-2 text-xs text-gray-500">x {item.quantity}</span>
                     </div>
-                    <span className="item-price">₹{formatPrice(item.price * item.quantity)}</span>
+                    <span className="font-semibold">₹{formatPrice(item.price * item.quantity)}</span>
                   </div>
                 ))}
               </div>
-              <div className="summary-totals">
-                <div className="summary-row">
+              <div className="space-y-2 border-t pt-4">
+                <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
                   <span>₹{formatPrice(cartTotals.subtotal)}</span>
                 </div>
-                
                 {parseFloat(cartTotals.tax) > 0 && (
-                  <div className="summary-row">
+                  <div className="flex justify-between text-gray-600">
                     <span className="flex items-center">
                       Tax
                       <button
                         onClick={() => setShowTaxBreakdown(!showTaxBreakdown)}
-                        className="tax-details-toggle"
+                        className="ml-2 text-xs text-green-600 underline"
                       >
                         {showTaxBreakdown ? '(hide details)' : '(show details)'}
                       </button>
@@ -276,52 +280,42 @@ const Checkout = () => {
                     <span>₹{formatPrice(cartTotals.tax)}</span>
                   </div>
                 )}
-                
                 {showTaxBreakdown && taxBreakdown.length > 0 && (
-                  <div className="tax-breakdown">
+                  <div className="bg-gray-50 rounded p-2 mt-2">
                     {taxBreakdown.map((taxGroup, index) => (
-                      <div key={index} className="tax-breakdown-row">
+                      <div key={index} className="flex justify-between text-xs text-gray-500">
                         <span>GST {taxGroup.rate}%</span>
                         <span>₹{formatPrice(taxGroup.tax_amount)}</span>
                       </div>
                     ))}
                   </div>
                 )}
-                
-                <div className="summary-row">
+                <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
                   {shipping > 0 ? (
                     <span>₹{formatPrice(shipping)}</span>
                   ) : (
-                    <span className="free-shipping">Free</span>
+                    <span className="text-green-600 font-semibold">Free</span>
                   )}
                 </div>
-                
-                <div className="summary-row total">
+                <div className="flex justify-between text-lg font-bold text-gray-800 border-t pt-4 mt-2">
                   <span>Total</span>
                   <span>₹{formatPrice(grandTotal)}</span>
                 </div>
               </div>
-              
               <button 
-                className={`place-order-button ${placingOrder ? 'processing' : ''}`}
+                className={`w-full mt-6 py-3 rounded-lg font-semibold text-white transition ${placingOrder ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
                 onClick={handlePlaceOrder}
                 disabled={!selectedAddress || placingOrder}
               >
                 {placingOrder ? (
-                  <>
-                    <span className="button-spinner"></span>
-                    <span>Processing...</span>
-                  </>
+                  <span className="flex items-center justify-center"><svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>Processing...</span>
                 ) : (
                   'Place Order'
                 )}
               </button>
-              
-              <div className="checkout-note">
-                <p>
-                  By placing your order, you agree to our <a href="/terms">Terms & Conditions</a> and acknowledge our <a href="/privacy">Privacy Policy</a>.
-                </p>
+              <div className="mt-4 text-xs text-gray-500 text-center">
+                By placing your order, you agree to our <a href="/terms" className="underline text-green-600">Terms & Conditions</a> and acknowledge our <a href="/privacy" className="underline text-green-600">Privacy Policy</a>.
               </div>
             </div>
           </div>
