@@ -68,6 +68,12 @@ const OrderConfirmation = () => {
     return parseFloat(price).toFixed(2);
   };
   
+  // Function to get a customer-friendly status label
+  const getStatusLabel = (status) => {
+    if (status === 'pending') return 'Order Received';
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -153,7 +159,7 @@ const OrderConfirmation = () => {
                 ${order.status === 'delivered' ? 'bg-emerald-100 text-emerald-800' : ''}
                 ${order.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''}
               `}>
-                {order.status}
+                {getStatusLabel(order.status)}
               </span>
             </div>
           </div>
