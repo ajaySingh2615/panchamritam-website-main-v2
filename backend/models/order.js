@@ -492,7 +492,7 @@ class Order {
         },
         shipping_address: address ? {
           name: address.name,
-          address_line1: address.address_line1,
+          address_line: address.address_line,
           address_line2: address.address_line2,
           city: address.city,
           state: address.state,
