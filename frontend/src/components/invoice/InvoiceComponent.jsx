@@ -203,7 +203,7 @@ const InvoiceComponent = ({ invoice, onPrint, orderId }) => {
             <p>{safeInvoice.customer.name || 'N/A'}</p>
             <p>{safeInvoice.shipping_address?.address_line1 || safeInvoice.shipping_address?.address_line || 'N/A'}</p>
             <p>{safeInvoice.shipping_address?.city || 'N/A'}, {safeInvoice.shipping_address?.state || 'N/A'} - {safeInvoice.shipping_address?.postal_code || safeInvoice.shipping_address?.zip_code || 'N/A'}</p>
-            <p>Phone: {safeInvoice.shipping_address?.phone || safeInvoice.shipping_address?.phone_number || safeInvoice.customer.phone || 'N/A'}</p>
+            <p>Phone: {safeInvoice.shipping_address?.phone_number || safeInvoice.customer.phone || 'N/A'}</p>
           </div>
         </div>
 

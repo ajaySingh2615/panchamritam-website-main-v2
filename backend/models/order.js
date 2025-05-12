@@ -498,7 +498,7 @@ class Order {
           state: address.state,
           postal_code: address.postal_code,
           country: address.country,
-          phone: address.phone
+          phone_number: address.phone_number
         } : null,
         items: items.map(item => ({
           product_id: item.product_id,
