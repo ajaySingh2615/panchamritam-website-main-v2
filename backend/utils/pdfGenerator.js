@@ -170,9 +170,13 @@ const generateInvoicePDF = (invoiceData, outputStream) => {
       y += 24;
       // Payment Method and Status (separate lines, clear labels)
       doc.font('Helvetica').fontSize(11);
+      let paymentMethodDisplay = invoiceData.payment.method;
+      if (paymentMethodDisplay && paymentMethodDisplay.toLowerCase() === 'cod') {
+        paymentMethodDisplay = 'COD (Cash on Delivery)';
+      }
       doc.text('Payment Method:', summaryX, y, { width: 100, align: 'right' });
-      doc.font('Helvetica-Bold').text(invoiceData.payment.method, summaryX + 110, y, { width: 90, align: 'right' });
-      y += 16;
+      doc.font('Helvetica-Bold').text(paymentMethodDisplay, summaryX + 110, y, { width: 90, align: 'right' });
+      y += 30;
       doc.font('Helvetica').text('Payment Status:', summaryX, y, { width: 100, align: 'right' });
       doc.font('Helvetica-Bold').text(invoiceData.payment.status.toUpperCase(), summaryX + 110, y, { width: 90, align: 'right' });
       y += 30;
