@@ -2,9 +2,10 @@ const Order = require('../models/order');
 const Address = require('../models/address');
 const Cart = require('../models/cart');
 const Product = require('../models/product');
+const { pool } = require('../config/db');
 const { AppError } = require('../middlewares/errorHandler');
 const { generateInvoicePDF } = require('../utils/pdfGenerator');
-const { sendInvoiceEmail } = require('../utils/emailService');
+const { sendInvoiceEmail, sendOrderConfirmation } = require('../utils/emailService');
 
 // Create new order from cart (checkout)
 exports.checkout = async (req, res, next) => {
@@ -31,6 +32,23 @@ exports.checkout = async (req, res, next) => {
     // Create order from cart
     try {
       const order = await Order.createFromCart(userId, addressId, paymentMethod);
+      
+      // Get user email to send confirmation
+      const [userRows] = await pool.execute(
+        'SELECT email FROM Users WHERE user_id = ?',
+        [userId]
+      );
+      
+      if (userRows && userRows.length > 0) {
+        const userEmail = userRows[0].email;
+        // Send order confirmation email
+        try {
+          await sendOrderConfirmation(order, userEmail);
+        } catch (emailError) {
+          console.error('Error sending order confirmation email:', emailError);
+          // Don't fail the order if email fails
+        }
+      }
       
       res.status(201).json({
         status: 'success',
@@ -202,6 +220,23 @@ exports.createOrderWithTax = async (req, res, next) => {
       
       // Clear the cart after successful order
       await Cart.clearCart(userId);
+      
+      // Get user email
+      const [userRows] = await pool.execute(
+        'SELECT email, name FROM Users WHERE user_id = ?',
+        [userId]
+      );
+      
+      if (userRows && userRows.length > 0) {
+        const userEmail = userRows[0].email;
+        // Send order confirmation email
+        try {
+          await sendOrderConfirmation(order, userEmail);
+        } catch (emailError) {
+          console.error('Error sending order confirmation email:', emailError);
+          // Don't fail the order if email fails
+        }
+      }
       
       res.status(201).json({
         status: 'success',
