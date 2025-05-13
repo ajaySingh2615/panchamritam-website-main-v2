@@ -75,20 +75,8 @@ const Contact = () => {
         {/* Organic gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#f8f6f3] via-[#f1efe9] to-[#e8e4d9] opacity-70"></div>
         
-        {/* Decorative pattern overlay */}
-        <div className="absolute inset-0 opacity-10" 
-             style={{
-               backgroundImage: `radial-gradient(circle at 25px 25px, #4D7C0F 2px, transparent 0)`,
-               backgroundSize: '30px 30px'
-             }}>
-        </div>
-        
-        {/* Subtle animated shapes */}
-        <div className="hidden md:block absolute top-20 right-20 w-64 h-64 bg-green-200 rounded-full mix-blend-multiply opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="hidden md:block absolute bottom-20 left-20 w-72 h-72 bg-[#4D7C0F] rounded-full mix-blend-multiply opacity-10 animate-blob animation-delay-4000"></div>
-
         {/* Content container */}
-        <div className={`relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 transition-all duration-500 ${scrolled ? 'transform -translate-y-4' : ''}`}>
+        <div className={`relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 transition-all duration-500 ${scrolled ? 'transform -translate-y-4' : ''}`}>
           {/* Breadcrumb navigation */}
           <div className="mb-6">
             <nav className="flex" aria-label="Breadcrumb">
@@ -112,62 +100,20 @@ const Contact = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left column - Hero content */}
-            <div className="transform transition duration-500 hover:translate-y-[-5px]">
+            <div>
               <div className="inline-block px-3 py-1 rounded-full bg-[#4D7C0F] text-white text-xs font-semibold mb-4">
                 Get in Touch
               </div>
               
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#1F2937] leading-tight mb-6">
-                Let's Start a <span className="text-[#4D7C0F] relative">
-                  Conversation
-                  <span className="absolute bottom-0 left-0 w-full h-2 bg-[#4D7C0F] opacity-30"></span>
-                </span>
+                Let's Start a <span className="text-[#4D7C0F]">Conversation</span>
               </h1>
               
               <p className="text-base md:text-lg text-[#6B7280] mb-8 max-w-xl leading-relaxed">
-                Have questions about our organic products or farming practices? Need information about your order? We're here to help you connect with truly sustainable farming.
+                Have questions about our organic products or farming practices? We're here to help you connect with truly sustainable farming.
               </p>
               
-              {/* Enhanced value propositions in a row */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-                <div className="group flex items-start space-x-3 transition-all duration-300 hover:transform hover:translate-x-1">
-                  <div className="w-10 h-10 rounded-full bg-[#ECFDF5] flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#4D7C0F]" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[#1F2937]">100% Organic</h3>
-                    <p className="text-sm text-[#6B7280]">Certified practices</p>
-                  </div>
-                </div>
-                
-                <div className="group flex items-start space-x-3 transition-all duration-300 hover:transform hover:translate-x-1">
-                  <div className="w-10 h-10 rounded-full bg-[#ECFDF5] flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#4D7C0F]" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[#1F2937]">Top Quality</h3>
-                    <p className="text-sm text-[#6B7280]">Premium products</p>
-                  </div>
-                </div>
-                
-                <div className="group flex items-start space-x-3 transition-all duration-300 hover:transform hover:translate-x-1">
-                  <div className="w-10 h-10 rounded-full bg-[#ECFDF5] flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#4D7C0F]" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[#1F2937]">Fast Response</h3>
-                    <p className="text-sm text-[#6B7280]">24-hour support</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 mb-6">
                 <a href="#contact-form" className="inline-flex items-center justify-center bg-[#4D7C0F] hover:bg-green-800 text-white font-medium py-3 px-8 rounded-md transition duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                   <span>Send Us a Message</span>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -183,62 +129,47 @@ const Contact = () => {
                 </a>
               </div>
               
-              {/* Social proof */}
-              <div className="mt-10 pt-6 border-t border-[#E5E7EB]">
-                <p className="text-sm text-[#6B7280] mb-3">Trusted by organic enthusiasts</p>
-                <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-8">
-                  <div className="flex -space-x-3">
-                    {[
-                      { img: personImage1, alt: "Customer 1" },
-                      { img: personImage2, alt: "Customer 2" },
-                      { img: personImage3, alt: "Customer 3" },
-                      { img: personImage4, alt: "Customer 4" },
-                      { img: personImage5, alt: "Customer 5" },
-                      { img: personImage6, alt: "Customer 6" }
-                    ].map((person, i) => (
-                      <div key={i} className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-white overflow-hidden shadow-sm">
-                        <img 
-                          src={person.img} 
-                          alt={person.alt} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center">
-                    <div className="flex text-yellow-400">
-                      {[1, 2, 3, 4, 5].map(i => (
-                        <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
+              {/* Social proof with client images */}
+              <div className="mt-8 pt-6 border-t border-[#E5E7EB]">
+                <p className="mb-3 text-sm font-medium text-[#4D7C0F]">Trusted by Organic Enthusiasts</p>
+                <div className="flex -space-x-3">
+                  {[
+                    { img: personImage1, alt: "Client testimonial" },
+                    { img: personImage2, alt: "Client testimonial" },
+                    { img: personImage3, alt: "Client testimonial" },
+                    { img: personImage4, alt: "Client testimonial" },
+                    { img: personImage5, alt: "Client testimonial" }
+                  ].map((person, i) => (
+                    <div key={i} className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-white overflow-hidden shadow-sm">
+                      <img 
+                        src={person.img} 
+                        alt={person.alt} 
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <span className="ml-2 text-sm font-medium text-[#6B7280]">4.9/5 from 200+ reviews</span>
-                  </div>
+                  ))}
                 </div>
+                <p className="mt-3 text-[#6B7280] text-sm italic">
+                  "Their commitment to sustainable farming practices and exceptional customer service sets them apart in the organic market."
+                </p>
               </div>
             </div>
             
             {/* Right column - Hero image instead of contact details */}
             <div className="relative h-full flex items-center justify-center p-4">
-              <div className="relative w-full max-w-md h-80 lg:h-96 bg-gradient-to-r from-[#ECFDF5] to-white rounded-lg overflow-hidden shadow-lg">
+              <div className="relative w-full max-w-md h-80 lg:h-96 bg-white rounded-lg overflow-hidden shadow-lg">
                 <div className="absolute top-0 left-0 w-full h-full bg-[#f8f6f3] flex flex-col items-center justify-center p-8 text-center">
-                  <div className="w-20 h-20 mb-6 rounded-full bg-[#4D7C0F] border-4 border-[#ECFDF5] flex items-center justify-center">
+                  <div className="w-20 h-20 mb-6 rounded-full bg-[#4D7C0F] flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <h2 className="text-2xl font-bold text-[#1F2937] mb-2">Reach Out To Us</h2>
-                  <p className="text-[#6B7280] mb-4">We're excited to hear from you and answer any questions about our organic products</p>
+                  <p className="text-[#6B7280] mb-4">We're excited to hear from you about our organic products</p>
                   <span className="inline-block px-4 py-2 bg-[#4D7C0F] text-white rounded-full text-sm font-semibold">
                     Response within 24 hours
                   </span>
                 </div>
-                
-                {/* Decorative elements */}
-                <div className="absolute top-5 right-5 w-16 h-16 rounded-full bg-[#ECFDF5] opacity-40"></div>
-                <div className="absolute bottom-10 left-5 w-12 h-12 rounded-full bg-[#4D7C0F] opacity-20"></div>
-                <div className="absolute bottom-20 right-10 w-8 h-8 rounded-full bg-[#4D7C0F] opacity-30"></div>
               </div>
             </div>
           </div>
