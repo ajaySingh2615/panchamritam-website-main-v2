@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import Breadcrumb from '../components/common/Breadcrumb';
+import personImage1 from '../assets/images/contact-page-hero-section-person-images/person1.jpg';
+import personImage2 from '../assets/images/contact-page-hero-section-person-images/person2.jpg';
+import personImage3 from '../assets/images/contact-page-hero-section-person-images/person3.jpg';
+import personImage4 from '../assets/images/contact-page-hero-section-person-images/person4.jpg';
+import personImage5 from '../assets/images/contact-page-hero-section-person-images/person5.jpg';
+import personImage6 from '../assets/images/contact-page-hero-section-person-images/person6.jpg';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -107,14 +113,14 @@ const Contact = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left column - Hero content */}
             <div className="transform transition duration-500 hover:translate-y-[-5px]">
-              <div className="inline-block px-3 py-1 rounded-full bg-[#ECFDF5] text-[#4D7C0F] text-xs font-semibold mb-4">
+              <div className="inline-block px-3 py-1 rounded-full bg-[#4D7C0F] text-white text-xs font-semibold mb-4">
                 Get in Touch
               </div>
               
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#1F2937] leading-tight mb-6">
                 Let's Start a <span className="text-[#4D7C0F] relative">
                   Conversation
-                  <span className="absolute bottom-0 left-0 w-full h-1 bg-[#ECFDF5]"></span>
+                  <span className="absolute bottom-0 left-0 w-full h-2 bg-[#4D7C0F] opacity-30"></span>
                 </span>
               </h1>
               
@@ -180,18 +186,29 @@ const Contact = () => {
               {/* Social proof */}
               <div className="mt-10 pt-6 border-t border-[#E5E7EB]">
                 <p className="text-sm text-[#6B7280] mb-3">Trusted by organic enthusiasts</p>
-                <div className="flex space-x-6">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map(i => (
-                      <div key={i} className="w-8 h-8 rounded-full bg-[#6B7280] border-2 border-white flex items-center justify-center text-xs font-medium text-white">
-                        {String.fromCharCode(64 + i)}
+                <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-8">
+                  <div className="flex -space-x-3">
+                    {[
+                      { img: personImage1, alt: "Customer 1" },
+                      { img: personImage2, alt: "Customer 2" },
+                      { img: personImage3, alt: "Customer 3" },
+                      { img: personImage4, alt: "Customer 4" },
+                      { img: personImage5, alt: "Customer 5" },
+                      { img: personImage6, alt: "Customer 6" }
+                    ].map((person, i) => (
+                      <div key={i} className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-white overflow-hidden shadow-sm">
+                        <img 
+                          src={person.img} 
+                          alt={person.alt} 
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     ))}
                   </div>
                   <div className="flex items-center">
                     <div className="flex text-yellow-400">
                       {[1, 2, 3, 4, 5].map(i => (
-                        <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                       ))}
@@ -205,15 +222,15 @@ const Contact = () => {
             {/* Right column - Hero image instead of contact details */}
             <div className="relative h-full flex items-center justify-center p-4">
               <div className="relative w-full max-w-md h-80 lg:h-96 bg-gradient-to-r from-[#ECFDF5] to-white rounded-lg overflow-hidden shadow-lg">
-                <div className="absolute top-0 left-0 w-full h-full bg-white opacity-40 flex flex-col items-center justify-center p-8 text-center">
-                  <div className="w-20 h-20 mb-6 rounded-full bg-[#ECFDF5] border-4 border-white flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#4D7C0F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="absolute top-0 left-0 w-full h-full bg-[#f8f6f3] flex flex-col items-center justify-center p-8 text-center">
+                  <div className="w-20 h-20 mb-6 rounded-full bg-[#4D7C0F] border-4 border-[#ECFDF5] flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <h2 className="text-2xl font-bold text-[#1F2937] mb-2">Reach Out To Us</h2>
                   <p className="text-[#6B7280] mb-4">We're excited to hear from you and answer any questions about our organic products</p>
-                  <span className="inline-block px-4 py-2 bg-[#ECFDF5] text-[#4D7C0F] rounded-full text-sm font-semibold">
+                  <span className="inline-block px-4 py-2 bg-[#4D7C0F] text-white rounded-full text-sm font-semibold">
                     Response within 24 hours
                   </span>
                 </div>
@@ -238,64 +255,76 @@ const Contact = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Email Contact Card */}
-            <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center border border-[#E5E7EB]">
-              <div className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#4D7C0F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+            <div className="relative w-full bg-gradient-to-r from-[#ECFDF5] to-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center border border-[#E5E7EB]">
+              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full bg-[#ECFDF5] opacity-30"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#4D7C0F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-[#1F2937] mb-2">Email Us</h3>
+                <p className="text-[#6B7280] mb-4">For any inquiries about our products or services</p>
+                <a href="mailto:support@organicfarm.com" className="text-[#4D7C0F] hover:text-green-800 font-medium transition hover:underline">
+                  support@organicfarm.com
+                </a>
               </div>
-              <h3 className="text-xl font-semibold text-[#1F2937] mb-2">Email Us</h3>
-              <p className="text-[#6B7280] mb-4">For any inquiries about our products or services</p>
-              <a href="mailto:support@organicfarm.com" className="text-[#4D7C0F] hover:text-green-800 font-medium transition hover:underline">
-                support@organicfarm.com
-              </a>
             </div>
             
             {/* Phone Contact Card */}
-            <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center border border-[#E5E7EB]">
-              <div className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#4D7C0F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z" />
-                </svg>
+            <div className="relative w-full bg-gradient-to-r from-[#ECFDF5] to-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center border border-[#E5E7EB]">
+              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full bg-[#ECFDF5] opacity-30"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#4D7C0F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-[#1F2937] mb-2">Call Us</h3>
+                <p className="text-[#6B7280] mb-4">Call us during business hours for immediate assistance</p>
+                <a href="tel:+15551234567" className="text-[#4D7C0F] hover:text-green-800 font-medium transition hover:underline">
+                  +1 (555) 123-4567
+                </a>
+                <p className="text-sm text-[#6B7280] mt-2">Monday-Friday: 9AM-6PM</p>
               </div>
-              <h3 className="text-xl font-semibold text-[#1F2937] mb-2">Call Us</h3>
-              <p className="text-[#6B7280] mb-4">Call us during business hours for immediate assistance</p>
-              <a href="tel:+15551234567" className="text-[#4D7C0F] hover:text-green-800 font-medium transition hover:underline">
-                +1 (555) 123-4567
-              </a>
-              <p className="text-sm text-[#6B7280] mt-2">Monday-Friday: 9AM-6PM</p>
             </div>
             
             {/* Location Contact Card */}
-            <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center border border-[#E5E7EB]">
-              <div className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#4D7C0F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-[#1F2937] mb-2">Visit Us</h3>
-              <p className="text-[#6B7280] mb-4">Visit our farm and store for a direct experience</p>
-              <p className="text-[#4D7C0F] font-medium">123 Farm Road, Green Valley</p>
-              <div className="grid grid-cols-2 gap-2 text-sm mt-2">
-                <p className="text-[#6B7280]">Mon-Fri:</p>
-                <p className="text-[#1F2937]">9AM-6PM</p>
-                <p className="text-[#6B7280]">Saturday:</p>
-                <p className="text-[#1F2937]">10AM-4PM</p>
-                <p className="text-[#6B7280]">Sunday:</p>
-                <p className="text-[#1F2937]">Closed</p>
+            <div className="relative w-full bg-gradient-to-r from-[#ECFDF5] to-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center border border-[#E5E7EB]">
+              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full bg-[#ECFDF5] opacity-30"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-[#ECFDF5] flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#4D7C0F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-[#1F2937] mb-2">Visit Us</h3>
+                <p className="text-[#6B7280] mb-4">Visit our farm and store for a direct experience</p>
+                <p className="text-[#4D7C0F] font-medium">123 Farm Road, Green Valley</p>
+                <div className="grid grid-cols-2 gap-2 text-sm mt-2">
+                  <p className="text-[#6B7280]">Mon-Fri:</p>
+                  <p className="text-[#1F2937]">9AM-6PM</p>
+                  <p className="text-[#6B7280]">Saturday:</p>
+                  <p className="text-[#1F2937]">10AM-4PM</p>
+                  <p className="text-[#6B7280]">Sunday:</p>
+                  <p className="text-[#1F2937]">Closed</p>
+                </div>
               </div>
             </div>
           </div>
           
           {/* Map placeholder */}
-          <div className="mt-12 p-6 rounded-lg bg-white border border-[#E5E7EB] h-64 flex items-center justify-center">
-            <div className="text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-[#6B7280] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="mt-12 relative w-full bg-gradient-to-r from-[#ECFDF5] to-white rounded-lg overflow-hidden shadow-lg p-6 flex items-center justify-center border border-[#E5E7EB]">
+            <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full bg-[#ECFDF5] opacity-30"></div>
+            <div className="absolute bottom-0 left-0 w-20 h-20 rounded-tr-full bg-[#ECFDF5] opacity-20"></div>
+            <div className="relative z-10 text-center py-10">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-[#4D7C0F] opacity-70 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
-              <p className="text-[#1F2937] text-lg">Interactive Map Coming Soon</p>
-              <p className="text-[#6B7280] text-base mt-1">Find directions to our organic farm and store</p>
+              <h3 className="text-xl font-semibold text-[#1F2937] mb-2">Find Our Location</h3>
+              <p className="text-[#6B7280] text-lg mb-2">Interactive Map Coming Soon</p>
+              <p className="text-[#6B7280] text-base">Find directions to our organic farm and store</p>
             </div>
           </div>
         </div>
@@ -324,15 +353,23 @@ const Contact = () => {
                 a: "We offer a 30-day satisfaction guarantee. If you're not completely satisfied with your purchase, you can return it within 30 days for a full refund or exchange."
               }
             ].map((faq, index) => (
-              <div key={index} className="bg-white rounded-lg p-6 hover:shadow-md transition-shadow border border-[#E5E7EB]">
-                <h3 className="text-lg font-semibold text-[#1F2937] mb-2">{faq.q}</h3>
-                <p className="text-[#6B7280] text-base">{faq.a}</p>
+              <div key={index} className="relative w-full bg-gradient-to-r from-[#ECFDF5] to-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-[#E5E7EB]">
+                <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full bg-[#ECFDF5] opacity-30"></div>
+                <div className="relative z-10">
+                  <h3 className="text-lg font-semibold text-[#1F2937] mb-2">{faq.q}</h3>
+                  <p className="text-[#6B7280] text-base">{faq.a}</p>
+                </div>
               </div>
             ))}
           </div>
           
           <div className="mt-10 text-center">
-            <a href="#contact-form" className="text-[#4D7C0F] hover:text-green-800 font-medium underline">Have more questions? Contact us</a>
+            <a href="#contact-form" className="inline-flex items-center text-[#4D7C0F] hover:text-green-800 font-medium transition-colors">
+              <span>Have more questions? Contact us</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
           </div>
         </div>
       </div>
