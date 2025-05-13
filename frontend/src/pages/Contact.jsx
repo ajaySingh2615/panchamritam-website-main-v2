@@ -23,6 +23,7 @@ const Contact = () => {
   });
 
   const [scrolled, setScrolled] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +32,11 @@ const Contact = () => {
     
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    // Trigger entrance animations after component mounts
+    setLoaded(true);
   }, []);
 
   const handleChange = (e) => {
@@ -71,7 +77,7 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-[#f8f6f3]">
       {/* Modern Hero Section for Organic Farming E-commerce */}
-      <div className="relative">
+      <div className={`relative transition-all duration-700 ease-out ${loaded ? 'opacity-100' : 'opacity-0 translate-y-10'}`}>
         {/* Organic gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#f8f6f3] via-[#f1efe9] to-[#e8e4d9] opacity-70"></div>
         
@@ -100,13 +106,16 @@ const Contact = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left column - Hero content */}
-            <div>
+            <div className={`transition-all duration-700 delay-300 ${loaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
               <div className="inline-block px-3 py-1 rounded-full bg-[#4D7C0F] text-white text-xs font-semibold mb-4">
                 Get in Touch
               </div>
               
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#1F2937] leading-tight mb-6">
-                Let's Start a <span className="text-[#4D7C0F]">Conversation</span>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#1F2937] leading-tight mb-6 transition-all duration-500">
+                Let's Start a <span className="text-[#4D7C0F] relative overflow-hidden group">
+                  <span className="inline-block transition-transform duration-300 group-hover:transform group-hover:-translate-y-1">Conversation</span>
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#4D7C0F] transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100 origin-left"></span>
+                </span>
               </h1>
               
               <p className="text-base md:text-lg text-[#6B7280] mb-8 max-w-xl leading-relaxed">
@@ -114,14 +123,14 @@ const Contact = () => {
               </p>
               
               <div className="flex flex-wrap gap-4 mb-6">
-                <a href="#contact-form" className="inline-flex items-center justify-center bg-[#4D7C0F] hover:bg-green-800 text-white font-medium py-3 px-8 rounded-md transition duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                <a href="#contact-form" className="inline-flex items-center justify-center bg-[#4D7C0F] hover:bg-green-800 text-white font-medium py-3 px-8 rounded-md transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform hover:-translate-y-1 hover:shadow-lg active:translate-y-0">
                   <span>Send Us a Message</span>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
                 </a>
                 
-                <a href="#why-organic" className="inline-flex items-center justify-center bg-white border border-[#E5E7EB] text-[#4D7C0F] hover:bg-[#ECFDF5] font-medium py-3 px-8 rounded-md transition duration-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                <a href="#why-organic" className="inline-flex items-center justify-center bg-white border border-[#E5E7EB] text-[#4D7C0F] hover:bg-[#ECFDF5] font-medium py-3 px-8 rounded-md transition-all duration-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform hover:-translate-y-1 hover:shadow-md active:translate-y-0">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -130,7 +139,7 @@ const Contact = () => {
               </div>
               
               {/* Social proof with client images */}
-              <div className="mt-8 pt-6 border-t border-[#E5E7EB]">
+              <div className="mt-8 pt-6 border-t border-[#E5E7EB] transition-all duration-700 delay-500 ease-out">
                 <p className="mb-3 text-sm font-medium text-[#4D7C0F]">Trusted by Organic Enthusiasts</p>
                 <div className="flex -space-x-3">
                   {[
@@ -140,7 +149,11 @@ const Contact = () => {
                     { img: personImage4, alt: "Client testimonial" },
                     { img: personImage5, alt: "Client testimonial" }
                   ].map((person, i) => (
-                    <div key={i} className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-white overflow-hidden shadow-sm">
+                    <div 
+                      key={i} 
+                      className={`w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-white overflow-hidden shadow-sm transition-all duration-300 transform hover:scale-110 hover:translate-y-[-5px] hover:z-10 hover:shadow-md cursor-pointer`}
+                      style={{ animationDelay: `${i * 100}ms`, transitionDelay: `${i * 50}ms` }}
+                    >
                       <img 
                         src={person.img} 
                         alt={person.alt} 
@@ -149,24 +162,24 @@ const Contact = () => {
                     </div>
                   ))}
                 </div>
-                <p className="mt-3 text-[#6B7280] text-sm italic">
+                <p className="mt-3 text-[#6B7280] text-sm italic animate-pulse">
                   "Their commitment to sustainable farming practices and exceptional customer service sets them apart in the organic market."
                 </p>
               </div>
             </div>
             
             {/* Right column - Hero image instead of contact details */}
-            <div className="relative h-full flex items-center justify-center p-4">
-              <div className="relative w-full max-w-md h-80 lg:h-96 bg-white rounded-lg overflow-hidden shadow-lg">
+            <div className={`relative h-full flex items-center justify-center p-4 transition-all duration-700 delay-500 ${loaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
+              <div className="relative w-full max-w-md h-80 lg:h-96 bg-white rounded-lg overflow-hidden shadow-lg transform transition-all duration-500 hover:shadow-2xl hover:scale-105">
                 <div className="absolute top-0 left-0 w-full h-full bg-[#f8f6f3] flex flex-col items-center justify-center p-8 text-center">
-                  <div className="w-20 h-20 mb-6 rounded-full bg-[#4D7C0F] flex items-center justify-center">
+                  <div className="w-20 h-20 mb-6 rounded-full bg-[#4D7C0F] flex items-center justify-center transition-transform duration-500 hover:rotate-12 animate-bounce">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <h2 className="text-2xl font-bold text-[#1F2937] mb-2">Reach Out To Us</h2>
                   <p className="text-[#6B7280] mb-4">We're excited to hear from you about our organic products</p>
-                  <span className="inline-block px-4 py-2 bg-[#4D7C0F] text-white rounded-full text-sm font-semibold">
+                  <span className="inline-block px-4 py-2 bg-[#4D7C0F] text-white rounded-full text-sm font-semibold hover:bg-green-800 transition-colors duration-300 cursor-pointer transform hover:scale-105 active:scale-95">
                     Response within 24 hours
                   </span>
                 </div>
@@ -330,6 +343,32 @@ style.textContent = `
   
   .animate-blob {
     animation: blob 7s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+  
+  .animate-pulse {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  .animate-bounce {
+    animation: bounce 2s infinite;
   }
   
   .animation-delay-2000 {
