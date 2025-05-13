@@ -183,7 +183,7 @@ const Checkout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-2">
+    <div className="min-h-screen py-8 px-2 pt-20 md:pt-24" style={{ backgroundColor: '#f8f6f3' }}>
       <div className="max-w-5xl mx-auto">
         <Breadcrumb items={breadcrumbItems} />
         <h1 className="text-3xl font-bold text-gray-800 mb-8">Checkout</h1>
