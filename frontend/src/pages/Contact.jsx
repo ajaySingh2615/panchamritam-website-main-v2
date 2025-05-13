@@ -392,7 +392,7 @@ const Contact = () => {
           {/* Section header with animation */}
           <div className={`text-center mb-16 transition-all duration-1000 transform ${faqSectionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className="mb-4">
-              <span className="inline-block px-4 py-1 rounded-full bg-[#4D7C0F] bg-opacity-10 text-[#4D7C0F] text-sm font-medium">Support</span>
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#4D7C0F] text-white text-sm font-semibold shadow-sm">Support</span>
             </div>
             <h2 className="text-4xl font-bold text-[#1F2937] mb-4">Frequently Asked Questions</h2>
             <p className="mt-4 text-[#6B7280] text-lg max-w-2xl mx-auto">Find quick answers to common questions about our organic products and services</p>
@@ -407,26 +407,9 @@ const Contact = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 ),
-                q: "How do I know your products are truly organic?", 
-                a: "All our products are certified organic by [certification body]. We maintain rigorous standards throughout our farming process and provide transparency through farm visits and detailed product information."
-              },
-              {
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                ),
-                q: "Do you offer international shipping?", 
-                a: "Yes, we ship to select international destinations. Shipping rates and delivery times vary by location. Please contact our customer service for specific details about shipping to your country."
-              },
-              {
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
-                  </svg>
-                ),
-                q: "What's your return policy?", 
-                a: "We offer a 30-day satisfaction guarantee. If you're not completely satisfied with your purchase, you can return it within 30 days for a full refund or exchange."
+                q: "How do I know your products are truly organic?",
+                a: "All our products are certified organic by leading certification bodies. Each product carries clear certification marks and can be traced back to our sustainable farming practices. We welcome farm visits and provide detailed documentation of our organic farming methods.",
+                category: "Quality Assurance"
               },
               {
                 icon: (
@@ -434,8 +417,19 @@ const Contact = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 ),
-                q: "How long does delivery usually take?",
-                a: "Delivery times vary based on your location. For domestic orders, delivery typically takes 3-5 business days. For international orders, please allow 7-14 business days for your package to arrive. You'll receive tracking information once your order ships."
+                q: "What are your delivery timeframes?",
+                a: "Local deliveries (within 50km): Same-day or next-day delivery\nDomestic shipping: 2-4 business days\nExpress shipping: 1-2 business days\nInternational: 7-14 business days\n\nTrack your order in real-time through our delivery tracking system.",
+                category: "Shipping & Delivery"
+              },
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+                  </svg>
+                ),
+                q: "What's your return policy?",
+                a: "We offer a 100% satisfaction guarantee! If you're not completely satisfied:\n• Return within 30 days for a full refund\n• Exchange for another product\n• Free return shipping for defective items\n• Store credit option available\n\nPlease keep original packaging for returns.",
+                category: "Returns & Refunds"
               },
               {
                 icon: (
@@ -443,8 +437,29 @@ const Contact = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 ),
-                q: "Are there any discounts for bulk orders?",
-                a: "Yes, we offer special pricing for bulk orders. For orders exceeding $500, you automatically receive a 10% discount. For larger wholesale inquiries, please contact our sales team directly at sales@organicfarm.com to discuss custom pricing options."
+                q: "Do you offer bulk or wholesale pricing?",
+                a: "Yes! We offer special pricing tiers:\n• 5-10 kg: 10% discount\n• 11-25 kg: 15% discount\n• 25+ kg: Custom wholesale rates\n\nBusiness customers can apply for our wholesale program with additional benefits. Contact our sales team for personalized quotes.",
+                category: "Pricing"
+              },
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                ),
+                q: "How do you ensure product freshness?",
+                a: "We maintain freshness through:\n• Harvest-on-demand approach\n• Advanced cold chain management\n• Same-day processing and packaging\n• Vacuum sealing when applicable\n• Clear harvest dates on packaging\n\nAll products come with storage instructions to maintain optimal freshness.",
+                category: "Quality Assurance"
+              },
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                  </svg>
+                ),
+                q: "What sustainable practices do you follow?",
+                a: "Our sustainability initiatives include:\n• Zero chemical pesticides\n• Water conservation through drip irrigation\n• Solar-powered farming operations\n• Biodegradable packaging\n• Composting and waste recycling\n• Support for local biodiversity\n\nWe're committed to carbon-neutral farming by 2026.",
+                category: "Sustainability"
               }
             ].map((faq, index) => (
               <div 
@@ -452,16 +467,18 @@ const Contact = () => {
                 className={`bg-white rounded-lg overflow-hidden shadow-md transition-all duration-500 transform ${faqSectionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                {/* FAQ Question (always visible) */}
                 <button 
                   onClick={() => toggleAccordion(index)}
                   className={`w-full px-6 py-5 flex items-center justify-between text-left transition-all duration-300 ${activeAccordion === index ? 'bg-[#ECFDF5]' : 'hover:bg-gray-50'}`}
                 >
-                  <div className="flex items-center">
-                    <div className={`mr-4 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${activeAccordion === index ? 'bg-[#4D7C0F] text-white' : 'bg-[#ECFDF5] text-[#4D7C0F]'}`}>
+                  <div className="flex items-center gap-6">
+                    <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${activeAccordion === index ? 'bg-[#4D7C0F] text-white' : 'bg-[#ECFDF5] text-[#4D7C0F]'}`}>
                       {faq.icon}
                     </div>
-                    <h3 className="text-lg font-semibold text-[#1F2937]">{faq.q}</h3>
+                    <div>
+                      <span className="block text-sm font-medium text-[#4D7C0F] mb-1">{faq.category}</span>
+                      <h3 className="text-lg font-semibold text-[#1F2937]">{faq.q}</h3>
+                    </div>
                   </div>
                   <div className={`text-[#4D7C0F] transform transition-transform duration-300 ${activeAccordion === index ? 'rotate-180' : ''}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -470,14 +487,13 @@ const Contact = () => {
                   </div>
                 </button>
                 
-                {/* FAQ Answer (collapsible) */}
                 <div 
                   className={`px-6 overflow-hidden transition-all duration-500 ease-in-out ${
                     activeAccordion === index ? 'max-h-96 pb-6 opacity-100' : 'max-h-0 pb-0 opacity-0'
                   }`}
                 >
                   <div className="pl-14 border-l-2 border-[#ECFDF5] ml-5">
-                    <p className="text-[#6B7280] text-base">{faq.a}</p>
+                    <p className="text-[#6B7280] text-base whitespace-pre-line">{faq.a}</p>
                   </div>
                 </div>
               </div>
@@ -627,4 +643,4 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-export default Contact; 
+export default Contact;
